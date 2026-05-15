@@ -70,7 +70,7 @@ export default function DebtsView() {
             </div>
             <h2 className="text-2xl font-bold text-on-surface flex items-center gap-3">
               <Receipt className="w-6 h-6 text-institutional-blue" />
-              IPTU 2024 - Exercício Corrente
+              IPTU 2026 - Exercício Corrente
             </h2>
           </div>
         </div>

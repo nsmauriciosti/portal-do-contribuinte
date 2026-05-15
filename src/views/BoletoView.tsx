@@ -105,7 +105,7 @@ export default function BoletoView() {
                   {[
                     { label: 'Inscrição Imobiliária', value: inscricao },
                     { label: 'Parcela', value: selectedOption.label },
-                    { label: 'Vencimento', value: '15/04/2024' },
+                    { label: 'Vencimento', value: '15/04/2026' },
                   ].map((item) => (
                     <div key={item.label} className="flex justify-between items-center py-3 border-b border-surface-gray/50 last:border-0">
                       <span className="text-sm font-medium text-on-surface-variant">{item.label}</span>

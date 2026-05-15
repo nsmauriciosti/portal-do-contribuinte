@@ -78,7 +78,7 @@ export default function HomeView() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-on-surface">Portal do Contribuinte</h1>
-              <p className="text-on-surface-variant text-sm mt-1">Acesse para consultar seus débitos de IPTU 2024</p>
+              <p className="text-on-surface-variant text-sm mt-1">Acesse para consultar seus débitos de IPTU 2026</p>
             </div>
           </div>
 

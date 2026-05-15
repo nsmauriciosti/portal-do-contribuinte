@@ -48,7 +48,7 @@ export default function GuiaConfirmationView() {
                   <div className="flex flex-col">
                     <span className="text-lg font-bold text-on-surface">Prefeitura de Nova Serrana</span>
                     <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      {selectedOption.installments > 1 ? `Carnê de Pagamento - Parcela ${idx + 1}/${selectedOption.installments}` : 'Documento de Arrecadação 2024'}
+                      {selectedOption.installments > 1 ? `Carnê de Pagamento - Parcela ${idx + 1}/${selectedOption.installments}` : 'Documento de Arrecadação 2026'}
                     </span>
                   </div>
                 </div>
