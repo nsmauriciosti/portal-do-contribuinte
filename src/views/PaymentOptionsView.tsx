@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Circle, ReceiptText } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ArrowLeft, CheckCircle2, Circle, ReceiptText, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { InstallmentOption } from '@/src/types';
 
@@ -15,7 +15,22 @@ const OPTIONS: InstallmentOption[] = [
 
 export default function PaymentOptionsView() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const navigate = useNavigate();
+
+  const handleOptionSelect = (id: string) => {
+    setSelectedId(id);
+    setShowConfirmModal(true);
+  };
+
+  const handleModalCancel = () => {
+    setShowConfirmModal(false);
+    setSelectedId(null);
+  };
+
+  const handleModalConfirm = () => {
+    setShowConfirmModal(false);
+  };
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 md:px-10 py-10 flex flex-col gap-10 pb-32 md:pb-10">
@@ -41,7 +56,7 @@ export default function PaymentOptionsView() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
-            onClick={() => setSelectedId(option.id)}
+            onClick={() => handleOptionSelect(option.id)}
             className={cn(
               "relative flex flex-col p-6 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg",
               selectedId === option.id 
@@ -104,6 +119,45 @@ export default function PaymentOptionsView() {
           Confirmar e Gerar Guia
         </button>
       </div>
+
+      <AnimatePresence>
+        {showConfirmModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col"
+            >
+              <div className="p-6 pb-0 flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-warning-gold/20 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-warning-gold" />
+                </div>
+                <div className="flex-1 pt-1">
+                  <h3 className="text-xl font-bold text-on-surface mb-2">Atenção</h3>
+                  <p className="text-on-surface-variant font-medium text-sm leading-relaxed">
+                    Ao selecionar essa opção, você não poderá alterá-lo novamente, o não pagamento até a data limite, você perderá o desconto.
+                  </p>
+                </div>
+              </div>
+              <div className="p-6 flex items-center justify-end gap-3 mt-4 bg-surface-gray/30 border-t border-surface-gray">
+                <button 
+                  onClick={handleModalCancel}
+                  className="px-6 py-2.5 rounded-xl font-bold text-on-surface-variant hover:bg-surface-gray transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleModalConfirm}
+                  className="px-6 py-2.5 rounded-xl font-bold bg-institutional-blue text-white hover:bg-primary shadow-lg shadow-institutional-blue/20 transition-all active:scale-95"
+                >
+                  Estou Ciente
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

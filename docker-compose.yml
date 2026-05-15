@@ -1,0 +1,11 @@
+services:
+  portal-contribuinte:
+    build:
+      context: .
+      no_cache: true
+    container_name: portal-contribuinte
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      - VIRTUAL_HOST=contribuinte.mauriciosti.xyz
