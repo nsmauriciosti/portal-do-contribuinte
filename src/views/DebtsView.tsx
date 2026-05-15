@@ -1,9 +1,22 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Home, Receipt, ArrowRight, PersonStanding, MapPin } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function DebtsView() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const debtData = location.state?.debtData;
+
+  if (!debtData) {
+    return <Navigate to="/" replace />;
+  }
+
+  const inscKey = Object.keys(debtData).find(k => k.startsWith('INSCRI')) || '';
+  const inscricao = debtData[inscKey];
+  const endereco = `${debtData['TIPO_LOGRA']} ${debtData['DES_LOGRA_']}, ${debtData['NUM_PREDIA']} ${debtData['COMPLEMENT'] ? '- ' + debtData['COMPLEMENT'] : ''} - ${debtData['DES_BAIRRO']}`;
+  const proprietario = debtData['M_NOME'];
+  let rawValor = Number(debtData['IPTU_Calc_2026']);
+  const valorTotal = !isNaN(rawValor) && rawValor > 0 ? rawValor : 1200.00;
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 md:px-10 py-10 flex flex-col gap-10">
@@ -28,11 +41,11 @@ export default function DebtsView() {
             <MapPin className="w-7 h-7 text-institutional-blue" />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Imóvel Localizado</span>
-            <p className="text-xl font-bold text-on-surface">Rua Principal, 123 - Centro</p>
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Imóvel Localizado - Inscrição: {inscricao}</span>
+            <p className="text-xl font-bold text-on-surface">{endereco}</p>
             <div className="flex items-center gap-2 mt-1 py-1 px-3 bg-surface-container-low rounded-lg w-fit">
               <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
-                Proprietário: <strong className="text-on-surface">José da Silva</strong>
+                Proprietário: <strong className="text-on-surface">{proprietario}</strong>
               </span>
             </div>
           </div>
@@ -67,11 +80,13 @@ export default function DebtsView() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="flex flex-col gap-1">
             <span className="text-sm font-bold text-on-surface-variant">Valor Total Pendente</span>
-            <span className="text-4xl font-bold text-institutional-blue">R$ 1.200,00</span>
+            <span className="text-4xl font-bold text-institutional-blue">
+              R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
           </div>
 
           <button 
-            onClick={() => navigate('/options')}
+            onClick={() => navigate('/options', { state: { baseValue: valorTotal, inscricao, proprietario } })}
             className="w-full md:w-auto bg-institutional-blue text-white hover:bg-primary h-14 px-8 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg shadow-institutional-blue/10"
           >
             Escolher Opções de Pagamento

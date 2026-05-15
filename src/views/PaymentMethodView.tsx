@@ -32,12 +32,14 @@ export default function PaymentMethodView() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedOption = location.state?.selectedOption;
+  const inscricao = location.state?.inscricao;
+  const proprietario = location.state?.proprietario;
 
   const handleContinue = () => {
     if (selectedMethod === PaymentMethod.PIX) {
-      navigate('/payment/pix', { state: { selectedOption } });
+      navigate('/payment/pix', { state: { selectedOption, inscricao, proprietario } });
     } else if (selectedMethod === PaymentMethod.BOLETO) {
-      navigate('/payment/boleto', { state: { selectedOption } });
+      navigate('/payment/boleto', { state: { selectedOption, inscricao, proprietario } });
     }
   };
 

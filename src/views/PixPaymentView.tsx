@@ -10,7 +10,7 @@ export default function PixPaymentView() {
   const location = useLocation();
   const selectedOption = location.state?.selectedOption || { installmentValue: 1200.00 };
   const amountToPay = selectedOption.installmentValue.toFixed(2);
-  const pixPayload = generatePixPayload('18291385000157', 'Pref Nova Serrana', 'Nova Serrana', amountToPay);
+  const pixPayload = generatePixPayload('18291385000159', 'Pref Nova Serrana', 'Nova Serrana', amountToPay);
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
 
   useEffect(() => {
@@ -33,6 +33,22 @@ export default function PixPaymentView() {
         <p className="text-on-surface-variant font-medium">Escaneie o QR Code abaixo ou copie o código para realizar o pagamento no aplicativo do seu banco.</p>
       </div>
 
+      {selectedOption.installments && selectedOption.installments > 1 && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-2xl bg-surface-container-low border border-institutional-blue rounded-2xl p-6 flex items-start gap-4 shadow-sm"
+        >
+          <Info className="w-6 h-6 text-institutional-blue shrink-0 mt-0.5" />
+          <div className="flex flex-col gap-2">
+            <h3 className="font-bold text-institutional-blue text-lg">Pix Automático Ativado</h3>
+            <p className="text-sm font-medium text-on-surface-variant leading-relaxed">
+              Você selecionou o parcelamento em <strong>{selectedOption.installments}x</strong>. Ao pagar o QR Code abaixo, você pagará a primeira parcela e registrará o <strong>Pix Automático</strong> no seu banco para que as próximas parcelas sejam debitadas automaticamente nas datas de vencimento, sem juros ou preocupações.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -40,7 +56,7 @@ export default function PixPaymentView() {
       >
         <div className="flex flex-col items-center gap-1 text-center">
           <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Valor a Pagar</span>
-          <span className="text-5xl font-bold text-institutional-blue">R$ {selectedOption.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+          <span className="text-5xl font-bold text-institutional-blue">R$ {selectedOption.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
 
         <div className="flex items-center gap-2 bg-surface-container py-1.5 px-6 rounded-full border border-outline-variant">
@@ -96,7 +112,7 @@ export default function PixPaymentView() {
           <div className="flex flex-col gap-2">
             {[
               { label: 'Beneficiário', value: 'Pref. Nova Serrana' },
-              { label: 'CNPJ', value: '18.291.385/0001-57' },
+              { label: 'CNPJ', value: '18.291.385/0001-59' },
               { label: 'Vencimento', value: 'Hoje' },
             ].map((d) => (
               <div key={d.label} className="flex justify-between items-center py-1">

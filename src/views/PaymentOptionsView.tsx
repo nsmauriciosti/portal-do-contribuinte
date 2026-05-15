@@ -1,22 +1,32 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Circle, ReceiptText, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { InstallmentOption } from '@/src/types';
 
-const OPTIONS: InstallmentOption[] = [
-  { id: '1', installments: 1, label: 'Cota Única (1x)', discountLabel: '25% DE DESCONTO', totalAmount: 900.00, installmentValue: 900.00 },
-  { id: '2', installments: 2, label: 'Parcelado (2x)', discountLabel: '20% DE DESCONTO', totalAmount: 960.00, installmentValue: 480.00 },
-  { id: '3', installments: 3, label: 'Parcelado (3x)', discountLabel: '15% DE DESCONTO', totalAmount: 1020.00, installmentValue: 340.00 },
-  { id: '4', installments: 4, label: 'Parcelado (4x)', discountLabel: '10% DE DESCONTO', totalAmount: 1080.00, installmentValue: 270.00 },
-  { id: '7', installments: 7, label: 'Parcelado (7x)', discountLabel: 'SEM DESCONTO', totalAmount: 1200.00, installmentValue: 171.43 },
-];
+
 
 export default function PaymentOptionsView() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const baseValue = location.state?.baseValue;
+  const inscricao = location.state?.inscricao || '01.02.003.0045.001';
+  const proprietario = location.state?.proprietario || 'João da Silva Pereira';
+
+  if (baseValue === undefined) {
+    return <Navigate to="/" replace />;
+  }
+
+  const OPTIONS: InstallmentOption[] = [
+    { id: '1', installments: 1, label: 'Cota Única (1x)', discountLabel: '25% DE DESCONTO', totalAmount: baseValue * 0.75, installmentValue: baseValue * 0.75 },
+    { id: '2', installments: 2, label: 'Parcelado (2x)', discountLabel: '20% DE DESCONTO', totalAmount: baseValue * 0.80, installmentValue: (baseValue * 0.80) / 2 },
+    { id: '3', installments: 3, label: 'Parcelado (3x)', discountLabel: '15% DE DESCONTO', totalAmount: baseValue * 0.85, installmentValue: (baseValue * 0.85) / 3 },
+    { id: '4', installments: 4, label: 'Parcelado (4x)', discountLabel: '10% DE DESCONTO', totalAmount: baseValue * 0.90, installmentValue: (baseValue * 0.90) / 4 },
+    { id: '7', installments: 7, label: 'Parcelado (7x)', discountLabel: 'SEM DESCONTO', totalAmount: baseValue, installmentValue: baseValue / 7 },
+  ];
 
   const handleOptionSelect = (id: string) => {
     setSelectedId(id);
@@ -96,17 +106,17 @@ export default function PaymentOptionsView() {
                 </span>
                 {option.discountLabel !== 'SEM DESCONTO' && (
                   <span className="text-[10px] font-medium text-terracotta line-through mt-0.5">
-                    De R$ 1.200,00
+                    De R$ {baseValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 )}
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-2xl font-bold text-on-surface">
-                  R$ {option.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {option.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 {option.installments > 1 && (
                   <span className="text-xs font-bold text-institutional-blue mt-0.5">
-                    ({option.installments}x de R$ {option.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                    ({option.installments}x de R$ {option.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
                   </span>
                 )}
               </div>
@@ -120,7 +130,7 @@ export default function PaymentOptionsView() {
           disabled={!selectedId}
           onClick={() => {
             const selectedOption = OPTIONS.find(o => o.id === selectedId);
-            navigate('/method', { state: { selectedOption } });
+            navigate('/method', { state: { selectedOption, inscricao, proprietario } });
           }}
           className={cn(
             "w-full md:w-auto h-14 px-10 rounded-xl font-bold flex items-center justify-center gap-3 transition-all",

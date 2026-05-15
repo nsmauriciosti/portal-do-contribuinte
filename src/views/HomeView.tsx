@@ -3,16 +3,59 @@ import { useNavigate } from 'react-router-dom';
 import { Landmark, Search, Info, Fingerprint } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
+import mockDb from '@/src/lib/mockDatabase.json';
 
 export default function HomeView() {
   const [method, setMethod] = useState<'doc' | 'insc'>('doc');
   const [value, setValue] = useState('');
   const navigate = useNavigate();
 
+  const handleMethodChange = (newMethod: 'doc' | 'insc') => {
+    setMethod(newMethod);
+    setValue('');
+  };
+
+  const handleValueChange = (raw: string) => {
+    let v = raw.replace(/\D/g, "");
+    if (method === 'doc') {
+      if (v.length <= 11) {
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+      } else {
+        v = v.substring(0, 14);
+        v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+        v = v.replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3/$4");
+        v = v.replace(/(\d{4})(\d)/, "$1-$2");
+      }
+    } else {
+      v = v.substring(0, 14);
+      v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+      v = v.replace(/^(\d{2})\.(\d{2})(\d)/, "$1.$2.$3");
+      v = v.replace(/^(\d{2})\.(\d{2})\.(\d{3})(\d)/, "$1.$2.$3.$4");
+      v = v.replace(/^(\d{2})\.(\d{2})\.(\d{3})\.(\d{4})(\d)/, "$1.$2.$3.$4.$5");
+    }
+    setValue(v);
+  };
+
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
-    if (value.trim()) {
-      navigate('/debts');
+    const query = value.trim().replace(/[^\w\d]/g, '');
+    
+    if (query) {
+      const result = mockDb.find((row: any) => {
+        const doc = String(row['M_CNPJ_CPF'] || '').replace(/[^\d]/g, '');
+        const inscKey = Object.keys(row).find(k => k.startsWith('INSCRI'));
+        const insc = inscKey ? String(row[inscKey]).replace(/[^\w\d]/g, '') : '';
+        return doc === query || insc === query;
+      });
+
+      if (result) {
+        navigate('/debts', { state: { debtData: result } });
+      } else {
+        alert('Nenhum débito encontrado para o documento/inscrição informado.');
+      }
     }
   };
 
@@ -45,7 +88,7 @@ export default function HomeView() {
             <div className="flex bg-surface-container p-1 rounded-xl">
               <button
                 type="button"
-                onClick={() => setMethod('doc')}
+                onClick={() => handleMethodChange('doc')}
                 className={cn(
                   "flex-1 py-3 text-sm font-bold rounded-lg transition-all",
                   method === 'doc' ? "bg-white shadow-sm text-on-surface" : "text-on-surface-variant hover:text-on-surface"
@@ -55,7 +98,7 @@ export default function HomeView() {
               </button>
               <button
                 type="button"
-                onClick={() => setMethod('insc')}
+                onClick={() => handleMethodChange('insc')}
                 className={cn(
                   "flex-1 py-3 text-sm font-bold rounded-lg transition-all",
                   method === 'insc' ? "bg-white shadow-sm text-on-surface" : "text-on-surface-variant hover:text-on-surface"
@@ -73,7 +116,7 @@ export default function HomeView() {
               <input
                 type="text"
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(e) => handleValueChange(e.target.value)}
                 placeholder={method === 'doc' ? "000.000.000-00" : "01.02.003..."}
                 className="w-full h-14 pl-12 pr-4 bg-surface-container-low border border-surface-gray rounded-xl focus:outline-none focus:ring-2 focus:ring-institutional-blue transition-all"
               />
