@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { QrCode, Copy, Info, ArrowLeft, Timer, CheckCircle2, Receipt } from 'lucide-react';
+import { Copy, Info, ArrowLeft, Timer, CheckCircle2, Receipt } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
+import { generatePixPayload } from '@/src/lib/pix';
 
 export default function PixPaymentView() {
+  const pixPayload = generatePixPayload('18291385000157', 'Pref Nova Serrana', 'Nova Serrana', '1200.00');
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
 
@@ -35,7 +37,7 @@ export default function PixPaymentView() {
       >
         <div className="flex flex-col items-center gap-1 text-center">
           <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Valor a Pagar</span>
-          <span className="text-5xl font-bold text-institutional-blue">R$ 450,00</span>
+          <span className="text-5xl font-bold text-institutional-blue">R$ 1.200,00</span>
         </div>
 
         <div className="flex items-center gap-2 bg-surface-container py-1.5 px-6 rounded-full border border-outline-variant">
@@ -44,7 +46,7 @@ export default function PixPaymentView() {
         </div>
 
         <div className="w-64 h-64 bg-surface-container-low border border-surface-gray rounded-2xl p-6 flex items-center justify-center relative group">
-          <QrCode className="w-full h-full text-on-surface opacity-80" />
+          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(pixPayload)}`} alt="QR Code PIX" className="w-full h-full object-contain mix-blend-multiply" />
           
           <div className="absolute top-2 left-2 w-6 h-6 border-t-4 border-l-4 border-institutional-blue rounded-tl-lg" />
           <div className="absolute top-2 right-2 w-6 h-6 border-t-4 border-r-4 border-institutional-blue rounded-tr-lg" />
@@ -56,7 +58,7 @@ export default function PixPaymentView() {
           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Pix Copia e Cola</label>
           <div className="flex flex-col gap-3 w-full">
             <div className="bg-surface-container-low border border-surface-gray rounded-xl px-5 py-4 overflow-hidden truncate">
-              <span className="text-sm font-medium text-on-surface-variant select-all">00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3...</span>
+              <span className="text-sm font-medium text-on-surface-variant select-all break-all">{pixPayload}</span>
             </div>
             <button className="w-full bg-institutional-blue text-white font-bold h-14 rounded-xl flex items-center justify-center gap-3 hover:opacity-90 active:scale-95 transition-all shadow-md">
               <Copy className="w-5 h-5" />
@@ -91,7 +93,7 @@ export default function PixPaymentView() {
           <div className="flex flex-col gap-2">
             {[
               { label: 'Beneficiário', value: 'Pref. Nova Serrana' },
-              { label: 'CNPJ', value: '18.242.081/0001-44' },
+              { label: 'CNPJ', value: '18.291.385/0001-57' },
               { label: 'Vencimento', value: 'Hoje' },
             ].map((d) => (
               <div key={d.label} className="flex justify-between items-center py-1">

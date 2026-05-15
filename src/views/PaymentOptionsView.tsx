@@ -10,7 +10,7 @@ const OPTIONS: InstallmentOption[] = [
   { id: '2', installments: 2, label: 'Parcelado (2x)', discountLabel: '20% DE DESCONTO', totalAmount: 960.00, installmentValue: 480.00 },
   { id: '3', installments: 3, label: 'Parcelado (3x)', discountLabel: '15% DE DESCONTO', totalAmount: 1020.00, installmentValue: 340.00 },
   { id: '4', installments: 4, label: 'Parcelado (4x)', discountLabel: '10% DE DESCONTO', totalAmount: 1080.00, installmentValue: 270.00 },
-  { id: '7', installments: 7, label: 'Parcelado (7x)', discountLabel: 'SEM DESCONTO', totalAmount: 1200.01, installmentValue: 171.43 },
+  { id: '7', installments: 7, label: 'Parcelado (7x)', discountLabel: 'SEM DESCONTO', totalAmount: 1200.00, installmentValue: 171.43 },
 ];
 
 export default function PaymentOptionsView() {
