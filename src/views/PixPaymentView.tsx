@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Copy, Info, ArrowLeft, Timer, CheckCircle2, Receipt } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { generatePixPayload } from '@/src/lib/pix';
 
 export default function PixPaymentView() {
-  const pixPayload = generatePixPayload('18291385000157', 'Pref Nova Serrana', 'Nova Serrana', '1200.00');
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedOption = location.state?.selectedOption || { installmentValue: 1200.00 };
+  const amountToPay = selectedOption.installmentValue.toFixed(2);
+  const pixPayload = generatePixPayload('18291385000157', 'Pref Nova Serrana', 'Nova Serrana', amountToPay);
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
 
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function PixPaymentView() {
       >
         <div className="flex flex-col items-center gap-1 text-center">
           <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Valor a Pagar</span>
-          <span className="text-5xl font-bold text-institutional-blue">R$ 1.200,00</span>
+          <span className="text-5xl font-bold text-institutional-blue">R$ {selectedOption.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
         </div>
 
         <div className="flex items-center gap-2 bg-surface-container py-1.5 px-6 rounded-full border border-outline-variant">

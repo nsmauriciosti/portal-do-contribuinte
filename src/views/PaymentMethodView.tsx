@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { QrCode, FileText, CreditCard, ArrowRight, CheckCircle2, Circle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
@@ -30,12 +30,14 @@ const METHODS = [
 export default function PaymentMethodView() {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedOption = location.state?.selectedOption;
 
   const handleContinue = () => {
     if (selectedMethod === PaymentMethod.PIX) {
-      navigate('/payment/pix');
+      navigate('/payment/pix', { state: { selectedOption } });
     } else if (selectedMethod === PaymentMethod.BOLETO) {
-      navigate('/payment/boleto');
+      navigate('/payment/boleto', { state: { selectedOption } });
     }
   };
 

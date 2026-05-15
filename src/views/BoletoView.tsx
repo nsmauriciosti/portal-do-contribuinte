@@ -1,9 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Copy, Download, Info, ArrowLeft, Receipt } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function BoletoView() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedOption = location.state?.selectedOption || { label: 'Parcelamento', installmentValue: 1200.00 };
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 md:px-10 py-10 flex flex-col items-center gap-10 pb-32">
@@ -53,7 +55,7 @@ export default function BoletoView() {
             <div className="flex flex-col gap-1">
               {[
                 { label: 'Inscrição Imobiliária', value: '01.02.003.0045.001' },
-                { label: 'Parcela', value: 'Cota Única (Com Desconto)' },
+                { label: 'Parcela', value: selectedOption.label },
                 { label: 'Vencimento', value: '15/04/2024' },
               ].map((item) => (
                 <div key={item.label} className="flex justify-between items-center py-3 border-b border-surface-gray/50 last:border-0">
@@ -63,7 +65,7 @@ export default function BoletoView() {
               ))}
               <div className="flex justify-between items-center pt-4">
                 <span className="text-lg font-bold text-on-surface">Valor a Pagar</span>
-                <span className="text-2xl font-bold text-success-green">R$ 450,00</span>
+                <span className="text-2xl font-bold text-success-green">R$ {selectedOption.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
           </motion.div>

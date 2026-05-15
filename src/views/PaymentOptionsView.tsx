@@ -90,15 +90,26 @@ export default function PaymentOptionsView() {
             </div>
 
             <div className="mt-auto pt-4 border-t border-surface-gray flex items-end justify-between">
-              <span className="text-xs font-bold text-on-surface-variant">
-                {option.installments === 1 ? 'Valor Total:' : 'Valor da Parcela:'}
-              </span>
-              <span className="text-2xl font-bold text-on-surface">
-                {option.installments === 1 
-                  ? `R$ ${option.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                  : `${option.installments}x de R$ ${option.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                }
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-on-surface-variant">
+                  {option.discountLabel === 'SEM DESCONTO' ? 'Valor Total:' : 'Valor com Desconto:'}
+                </span>
+                {option.discountLabel !== 'SEM DESCONTO' && (
+                  <span className="text-[10px] font-medium text-terracotta line-through mt-0.5">
+                    De R$ 1.200,00
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-2xl font-bold text-on-surface">
+                  R$ {option.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
+                {option.installments > 1 && (
+                  <span className="text-xs font-bold text-institutional-blue mt-0.5">
+                    ({option.installments}x de R$ {option.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                  </span>
+                )}
+              </div>
             </div>
           </motion.label>
         ))}
@@ -107,7 +118,10 @@ export default function PaymentOptionsView() {
       <div className="flex justify-end pt-6 border-t border-surface-gray">
         <button 
           disabled={!selectedId}
-          onClick={() => navigate('/method')}
+          onClick={() => {
+            const selectedOption = OPTIONS.find(o => o.id === selectedId);
+            navigate('/method', { state: { selectedOption } });
+          }}
           className={cn(
             "w-full md:w-auto h-14 px-10 rounded-xl font-bold flex items-center justify-center gap-3 transition-all",
             selectedId 
