@@ -15,6 +15,7 @@ export default function PaymentOptionsView() {
   const baseValue = location.state?.baseValue;
   const inscricao = location.state?.inscricao || '01.02.003.0045.001';
   const proprietario = location.state?.proprietario || 'João da Silva Pereira';
+  const areaTotal = location.state?.areaTotal || '0,00';
 
   if (baseValue === undefined) {
     return <Navigate to="/" replace />;
@@ -40,6 +41,13 @@ export default function PaymentOptionsView() {
 
   const handleModalConfirm = () => {
     setShowConfirmModal(false);
+  };
+
+  const handleContinue = () => {
+    const selectedOption = OPTIONS.find(o => o.id === selectedId);
+    if (selectedOption) {
+      navigate('/method', { state: { selectedOption, inscricao, proprietario, areaTotal } });
+    }
   };
 
   return (
@@ -128,10 +136,7 @@ export default function PaymentOptionsView() {
       <div className="flex justify-end pt-6 border-t border-surface-gray">
         <button 
           disabled={!selectedId}
-          onClick={() => {
-            const selectedOption = OPTIONS.find(o => o.id === selectedId);
-            navigate('/method', { state: { selectedOption, inscricao, proprietario } });
-          }}
+          onClick={handleContinue}
           className={cn(
             "w-full md:w-auto h-14 px-10 rounded-xl font-bold flex items-center justify-center gap-3 transition-all",
             selectedId 

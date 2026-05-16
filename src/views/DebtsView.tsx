@@ -15,6 +15,7 @@ export default function DebtsView() {
   const inscricao = debtData[inscKey];
   const endereco = `${debtData['TIPO_LOGRA']} ${debtData['DES_LOGRA_']}, ${debtData['NUM_PREDIA']} ${debtData['COMPLEMENT'] ? '- ' + debtData['COMPLEMENT'] : ''} - ${debtData['DES_BAIRRO']}`;
   const proprietario = debtData['M_NOME'];
+  const areaTotal = debtData['M_AREA_TOT_CON'] || 0;
   let rawValor = Number(debtData['IPTU_Calc_2026']);
   const valorTotal = !isNaN(rawValor) && rawValor > 0 ? rawValor : 1200.00;
 
@@ -43,10 +44,17 @@ export default function DebtsView() {
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Imóvel Localizado - Inscrição: {inscricao}</span>
             <p className="text-xl font-bold text-on-surface">{endereco}</p>
-            <div className="flex items-center gap-2 mt-1 py-1 px-3 bg-surface-container-low rounded-lg w-fit">
-              <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
-                Proprietário: <strong className="text-on-surface">{proprietario}</strong>
-              </span>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
+                <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
+                  Proprietário: <strong className="text-on-surface">{proprietario}</strong>
+                </span>
+              </div>
+              <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
+                <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
+                  Área Construída: <strong className="text-on-surface">{Number(areaTotal).toLocaleString('pt-BR')} m²</strong>
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -86,7 +94,7 @@ export default function DebtsView() {
           </div>
 
           <button 
-            onClick={() => navigate('/options', { state: { baseValue: valorTotal, inscricao, proprietario } })}
+            onClick={() => navigate('/options', { state: { baseValue: valorTotal, inscricao, proprietario, areaTotal } })}
             className="w-full md:w-auto bg-institutional-blue text-white hover:bg-primary h-14 px-8 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg shadow-institutional-blue/10"
           >
             Escolher Opções de Pagamento

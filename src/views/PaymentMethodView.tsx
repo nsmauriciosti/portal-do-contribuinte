@@ -34,6 +34,7 @@ export default function PaymentMethodView() {
   const selectedOption = location.state?.selectedOption;
   const inscricao = location.state?.inscricao;
   const proprietario = location.state?.proprietario;
+  const areaTotal = location.state?.areaTotal;
 
   const handleContinue = () => {
     // Save agreement to mock database for Admin Dashboard
@@ -62,9 +63,9 @@ export default function PaymentMethodView() {
     }
 
     if (selectedMethod === PaymentMethod.PIX) {
-      navigate('/payment/pix', { state: { selectedOption, inscricao, proprietario } });
+      navigate('/payment/pix', { state: { selectedOption, inscricao, proprietario, areaTotal } });
     } else if (selectedMethod === PaymentMethod.BOLETO) {
-      navigate('/payment/boleto', { state: { selectedOption, inscricao, proprietario } });
+      navigate('/payment/boleto', { state: { selectedOption, inscricao, proprietario, areaTotal } });
     }
   };
 

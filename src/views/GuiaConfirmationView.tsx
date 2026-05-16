@@ -8,6 +8,7 @@ export default function GuiaConfirmationView() {
   const selectedOption = location.state?.selectedOption || { installments: 1, installmentValue: 850.00, totalAmount: 850.00 };
   const inscricao = location.state?.inscricao || '01.02.003.0045.001';
   const proprietario = location.state?.proprietario || 'João da Silva Pereira';
+  const areaTotal = location.state?.areaTotal || 0;
 
   const generateLinha = (valor: number) => {
     const v = Math.round(valor * 100).toString().padStart(11, '0');
@@ -58,7 +59,7 @@ export default function GuiaConfirmationView() {
               </div>
 
               {/* Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Contribuinte</span>
                   <span className="text-lg font-bold text-on-surface border-b border-surface-gray/50 pb-1">{proprietario}</span>
@@ -66,6 +67,10 @@ export default function GuiaConfirmationView() {
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Inscrição Imobiliária</span>
                   <span className="text-lg font-bold text-on-surface border-b border-surface-gray/50 pb-1">{inscricao}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Área Construída</span>
+                  <span className="text-lg font-bold text-on-surface border-b border-surface-gray/50 pb-1">{Number(areaTotal).toLocaleString('pt-BR')} m²</span>
                 </div>
               </div>
 

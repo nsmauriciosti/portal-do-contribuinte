@@ -9,6 +9,9 @@ export default function PixPaymentView() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedOption = location.state?.selectedOption || { installmentValue: 1200.00 };
+  const inscricao = location.state?.inscricao || '01.02.003.0045.001';
+  const proprietario = location.state?.proprietario || 'João da Silva Pereira';
+  const areaTotal = location.state?.areaTotal || 0;
   const amountToPay = selectedOption.installmentValue.toFixed(2);
   const pixPayload = generatePixPayload('18291385000159', 'Pref Nova Serrana', 'Nova Serrana', amountToPay);
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
@@ -111,8 +114,9 @@ export default function PixPaymentView() {
           </h3>
           <div className="flex flex-col gap-2">
             {[
-              { label: 'Beneficiário', value: 'Pref. Nova Serrana' },
-              { label: 'CNPJ', value: '18.291.385/0001-59' },
+              { label: 'Inscrição Imobiliária', value: inscricao },
+              { label: 'Área Construída', value: `${Number(areaTotal).toLocaleString('pt-BR')} m²` },
+              { label: 'Forma de Pagamento', value: selectedOption?.label || 'Cota Única' },
               { label: 'Vencimento', value: 'Hoje' },
             ].map((d) => (
               <div key={d.label} className="flex justify-between items-center py-1">

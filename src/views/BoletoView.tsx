@@ -8,6 +8,7 @@ export default function BoletoView() {
   const selectedOption = location.state?.selectedOption || { label: 'Parcelamento', installmentValue: 1200.00, installments: 2, totalAmount: 1200.00 };
   const inscricao = location.state?.inscricao || '01.02.003.0045.001';
   const proprietario = location.state?.proprietario || 'João da Silva Pereira';
+  const areaTotal = location.state?.areaTotal || 0;
 
   const generateLinha = (valor: number) => {
     const v = Math.round(valor * 100).toString().padStart(11, '0');
@@ -62,7 +63,7 @@ export default function BoletoView() {
             
             <div className="mt-6 flex flex-col items-center gap-3">
               <button 
-                onClick={() => navigate('/confirmation', { state: { selectedOption, inscricao, proprietario } })}
+                onClick={() => navigate('/confirmation', { state: { selectedOption, inscricao, proprietario, areaTotal } })}
                 className="w-full md:w-auto bg-institutional-blue text-white font-bold h-14 px-10 rounded-xl flex items-center justify-center gap-3 hover:opacity-90 active:scale-95 transition-all shadow-md"
               >
                 <Download className="w-5 h-5" /> Baixar Carnê Completo (PDF)
@@ -104,6 +105,7 @@ export default function BoletoView() {
                 <div className="flex flex-col gap-1">
                   {[
                     { label: 'Inscrição Imobiliária', value: inscricao },
+                    { label: 'Área Construída', value: `${Number(areaTotal).toLocaleString('pt-BR')} m²` },
                     { label: 'Parcela', value: selectedOption.label },
                     { label: 'Vencimento', value: '15/04/2026' },
                   ].map((item) => (
@@ -133,7 +135,7 @@ export default function BoletoView() {
                   <p className="text-xs font-medium text-on-surface-variant mt-2">Baixe o documento completo em formato PDF.</p>
                 </div>
                 <button 
-                  onClick={() => navigate('/confirmation', { state: { selectedOption, inscricao, proprietario } })}
+                  onClick={() => navigate('/confirmation', { state: { selectedOption, inscricao, proprietario, areaTotal } })}
                   className="w-full h-12 border-2 border-institutional-blue text-institutional-blue font-bold rounded-xl hover:bg-surface-container transition-all"
                 >
                   Baixar Boleto PDF
