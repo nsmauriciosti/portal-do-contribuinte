@@ -36,6 +36,31 @@ export default function PaymentMethodView() {
   const proprietario = location.state?.proprietario;
 
   const handleContinue = () => {
+    // Save agreement to mock database for Admin Dashboard
+    if (selectedOption) {
+      try {
+        const existing = JSON.parse(localStorage.getItem('portal_agreements') || '[]');
+        const newAgreement = {
+          id: Date.now(),
+          name: proprietario || 'Contribuinte',
+          inscricao: inscricao || '-',
+          option: selectedOption.label,
+          value: selectedOption.totalAmount || 0,
+          date: new Date().toLocaleDateString('pt-BR'),
+          status: 'Aguardando Pagamento',
+          installments: selectedOption.installments || 1,
+          phone: '(37) 99999-9999' // mock phone for WA
+        };
+        // avoid duplicating the exact same agreement in the same session
+        const isDuplicate = existing.some((e: any) => e.inscricao === newAgreement.inscricao && e.option === newAgreement.option && e.date === newAgreement.date);
+        if (!isDuplicate) {
+          localStorage.setItem('portal_agreements', JSON.stringify([newAgreement, ...existing]));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     if (selectedMethod === PaymentMethod.PIX) {
       navigate('/payment/pix', { state: { selectedOption, inscricao, proprietario } });
     } else if (selectedMethod === PaymentMethod.BOLETO) {

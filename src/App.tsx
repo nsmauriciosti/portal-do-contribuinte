@@ -13,6 +13,7 @@ import PaymentMethodView from './views/PaymentMethodView';
 import PixPaymentView from './views/PixPaymentView';
 import BoletoView from './views/BoletoView';
 import GuiaConfirmationView from './views/GuiaConfirmationView';
+import AdminView from './views/AdminView';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/payment/pix" element={<PixPaymentView />} />
             <Route path="/payment/boleto" element={<BoletoView />} />
             <Route path="/confirmation" element={<GuiaConfirmationView />} />
+            <Route path="/admin" element={<AdminView />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
