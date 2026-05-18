@@ -11,12 +11,11 @@ export default function DebtsView() {
     return <Navigate to="/" replace />;
   }
 
-  const inscKey = Object.keys(debtData).find(k => k.startsWith('INSCRI')) || '';
-  const inscricao = debtData[inscKey];
-  const endereco = `${debtData['TIPO_LOGRA']} ${debtData['DES_LOGRA_']}, ${debtData['NUM_PREDIA']} ${debtData['COMPLEMENT'] ? '- ' + debtData['COMPLEMENT'] : ''} - ${debtData['DES_BAIRRO']}`;
-  const proprietario = debtData['M_NOME'];
-  const areaTotal = debtData['M_AREA_TOT_CON'] || 0;
-  let rawValor = Number(debtData['IPTU_Calc_2026']);
+  const inscricao = debtData['Inscricao_Imobiliaria'];
+  const endereco = `${debtData['Tipo_Logradouro']} ${debtData['Nome_Logradouro']}, ${debtData['Numero_Predial']} ${debtData['Complemento'] ? '- ' + debtData['Complemento'] : ''} - ${debtData['Nome_Bairro']}`;
+  const proprietario = debtData['Nome_Proprietario'];
+  const areaTotal = debtData['Area_Total_Construida'] || 0;
+  let rawValor = Number(debtData['Valor_IPTU_2026']);
   const valorTotal = !isNaN(rawValor) && rawValor > 0 ? rawValor : 1200.00;
 
   return (

@@ -45,9 +45,8 @@ export default function HomeView() {
     
     if (query) {
       const result = mockDb.find((row: any) => {
-        const doc = String(row['M_CNPJ_CPF'] || '').replace(/[^\d]/g, '');
-        const inscKey = Object.keys(row).find(k => k.startsWith('INSCRI'));
-        const insc = inscKey ? String(row[inscKey]).replace(/[^\w\d]/g, '') : '';
+        const doc = String(row['CPF_CNPJ_Proprietario'] || '').replace(/[^\d]/g, '');
+        const insc = String(row['Inscricao_Imobiliaria'] || '').replace(/[^\w\d]/g, '');
         return doc === query || insc === query;
       });
 
