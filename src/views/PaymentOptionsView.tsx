@@ -28,14 +28,18 @@ export default function PaymentOptionsView() {
     // Busca acordos rompidos/parciais do localStorage
     try {
       const stored = JSON.parse(localStorage.getItem('portal_agreements') || '[]');
-      const agreement = stored.find((a: any) => a.inscricao === inscricao);
+      // Busca especificamente algum acordo desta inscrição que foi iniciado e rompido
+      const agreement = stored.find((a: any) => a.inscricao === inscricao && a.paidInstallments > 0 && a.paidInstallments < a.installments);
       
-      if (agreement && agreement.paidInstallments > 0 && agreement.paidInstallments < agreement.installments) {
+      if (agreement) {
         setBrokenAgreement(agreement);
-        // Calcula o saldo devedor descontando o que já foi pago
+        // O valor pago é calculado com base no acordo (com desconto que ele tinha)
         const valorPorParcela = agreement.value / agreement.installments;
         const valorPago = valorPorParcela * agreement.paidInstallments;
-        const saldoDevedor = agreement.value - valorPago;
+        
+        // Porém, como ele rompeu o acordo, ele perde o desconto do restante!
+        // O saldo devedor volta a ser o "valor total original" (baseValue) MENOS o que ele já pagou em dinheiro
+        const saldoDevedor = baseValue - valorPago;
         setActiveBaseValue(saldoDevedor);
       }
     } catch (e) {}
