@@ -11,23 +11,31 @@ export default function DebtsView() {
     return <Navigate to="/" replace />;
   }
 
-  const inscricao = debtData['Inscricao_Imobiliaria'] || '-';
+  const isMultiple = Array.isArray(debtData) && debtData.length > 1;
+  const dataList = Array.isArray(debtData) ? debtData : [debtData];
+  const firstItem = dataList[0];
+
+  const inscricao = isMultiple ? `Múltiplas Inscrições (${dataList.length})` : (firstItem['Inscricao_Imobiliaria'] || '-');
   
-  const tipoLogra = debtData['Tipo_Logradouro'] || '';
-  const nomeLogra = debtData['Nome_Logradouro'] || '';
-  const numPredial = debtData['Numero_Predial'] || 'S/N';
-  const complemento = debtData['Complemento'] ? `- ${debtData['Complemento']}` : '';
-  const bairro = debtData['Nome_Bairro'] || '';
+  const tipoLogra = firstItem['Tipo_Logradouro'] || '';
+  const nomeLogra = firstItem['Nome_Logradouro'] || '';
+  const numPredial = firstItem['Numero_Predial'] || 'S/N';
+  const complemento = firstItem['Complemento'] ? `- ${firstItem['Complemento']}` : '';
+  const bairro = firstItem['Nome_Bairro'] || '';
   
-  const endereco = [tipoLogra, nomeLogra, numPredial, complemento].filter(Boolean).join(' ') + (bairro ? ` - ${bairro}` : '');
+  const endereco = isMultiple 
+    ? `Lote de ${dataList.length} imóveis selecionados` 
+    : ([tipoLogra, nomeLogra, numPredial, complemento].filter(Boolean).join(' ') + (bairro ? ` - ${bairro}` : ''));
   
-  const proprietario = debtData['Nome_Proprietario'] || 'NÃO INFORMADO';
-  const cpfCnpj = debtData['CPF_CNPJ_Proprietario'] || '';
-  const areaTotal = debtData['Area_Total_Construida'] || '0';
-  const tipoImovel = debtData['Tipo_Imovel'] || '';
-  const cadastroContribuinte = debtData['Numero_Cadastro_Contribuinte'] || '';
-  const codBairro = debtData['Codigo_Bairro'] || '';
-  const valorTotal = Number(debtData['Valor_IPTU_2026']) || 0;
+  const proprietario = firstItem['Nome_Proprietario'] || 'NÃO INFORMADO';
+  const cpfCnpj = firstItem['CPF_CNPJ_Proprietario'] || '';
+  
+  const areaTotal = dataList.reduce((acc, curr) => acc + (Number(curr['Area_Total_Construida']) || 0), 0);
+  const valorTotal = dataList.reduce((acc, curr) => acc + (Number(curr['Valor_IPTU_2026']) || 0), 0);
+
+  const tipoImovel = isMultiple ? 'VÁRIOS' : (firstItem['Tipo_Imovel'] || '');
+  const cadastroContribuinte = isMultiple ? 'VÁRIOS' : (firstItem['Numero_Cadastro_Contribuinte'] || '');
+  const codBairro = isMultiple ? 'VÁRIOS' : (firstItem['Codigo_Bairro'] || '');
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 md:px-10 py-10 flex flex-col gap-10">
@@ -52,7 +60,9 @@ export default function DebtsView() {
             <MapPin className="w-7 h-7 text-institutional-blue" />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Imóvel Localizado - Inscrição: {inscricao}</span>
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+              {isMultiple ? 'Lote de Imóveis' : `Imóvel Localizado - Inscrição: ${inscricao}`}
+            </span>
             <p className="text-xl font-bold text-on-surface">{endereco}</p>
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
