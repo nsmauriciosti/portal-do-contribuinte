@@ -11,12 +11,23 @@ export default function DebtsView() {
     return <Navigate to="/" replace />;
   }
 
-  const inscricao = debtData['Inscricao_Imobiliaria'];
-  const endereco = `${debtData['Tipo_Logradouro']} ${debtData['Nome_Logradouro']}, ${debtData['Numero_Predial']} ${debtData['Complemento'] ? '- ' + debtData['Complemento'] : ''} - ${debtData['Nome_Bairro']}`;
-  const proprietario = debtData['Nome_Proprietario'];
-  const areaTotal = debtData['Area_Total_Construida'] || 0;
-  let rawValor = Number(debtData['Valor_IPTU_2026']);
-  const valorTotal = !isNaN(rawValor) && rawValor > 0 ? rawValor : 1200.00;
+  const inscricao = debtData['Inscricao_Imobiliaria'] || '-';
+  
+  const tipoLogra = debtData['Tipo_Logradouro'] || '';
+  const nomeLogra = debtData['Nome_Logradouro'] || '';
+  const numPredial = debtData['Numero_Predial'] || 'S/N';
+  const complemento = debtData['Complemento'] ? `- ${debtData['Complemento']}` : '';
+  const bairro = debtData['Nome_Bairro'] || '';
+  
+  const endereco = [tipoLogra, nomeLogra, numPredial, complemento].filter(Boolean).join(' ') + (bairro ? ` - ${bairro}` : '');
+  
+  const proprietario = debtData['Nome_Proprietario'] || 'NÃO INFORMADO';
+  const cpfCnpj = debtData['CPF_CNPJ_Proprietario'] || '';
+  const areaTotal = debtData['Area_Total_Construida'] || '0';
+  const tipoImovel = debtData['Tipo_Imovel'] || '';
+  const cadastroContribuinte = debtData['Numero_Cadastro_Contribuinte'] || '';
+  const codBairro = debtData['Codigo_Bairro'] || '';
+  const valorTotal = Number(debtData['Valor_IPTU_2026']) || 0;
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 md:px-10 py-10 flex flex-col gap-10">
@@ -43,17 +54,45 @@ export default function DebtsView() {
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Imóvel Localizado - Inscrição: {inscricao}</span>
             <p className="text-xl font-bold text-on-surface">{endereco}</p>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
                 <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
                   Proprietário: <strong className="text-on-surface">{proprietario}</strong>
                 </span>
               </div>
+              {cpfCnpj && (
+                <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
+                  <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
+                    Doc: <strong className="text-on-surface">{cpfCnpj}</strong>
+                  </span>
+                </div>
+              )}
               <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
                 <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
                   Área Construída: <strong className="text-on-surface">{Number(areaTotal).toLocaleString('pt-BR')} m²</strong>
                 </span>
               </div>
+              {tipoImovel && (
+                <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
+                  <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
+                    Tipo: <strong className="text-on-surface">{tipoImovel}</strong>
+                  </span>
+                </div>
+              )}
+              {cadastroContribuinte && (
+                <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
+                  <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
+                    Cadastro: <strong className="text-on-surface">{cadastroContribuinte}</strong>
+                  </span>
+                </div>
+              )}
+              {codBairro && (
+                <div className="py-1 px-3 bg-surface-container-low rounded-lg w-fit">
+                  <span className="text-xs font-bold text-on-surface-variant flex items-center gap-2">
+                    Cód. Bairro: <strong className="text-on-surface">{codBairro}</strong>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
