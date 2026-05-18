@@ -50,6 +50,7 @@ export default function PaymentMethodView() {
           date: new Date().toLocaleDateString('pt-BR'),
           status: 'Aguardando Pagamento',
           installments: selectedOption.installments || 1,
+          paidInstallments: 0,
           phone: '(37) 99999-9999' // mock phone for WA
         };
         // avoid duplicating the exact same agreement in the same session

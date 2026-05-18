@@ -11,14 +11,19 @@ import {
   Home,
   Clock,
   Search,
-  Filter
+  Filter,
+  BarChart3,
+  TrendingUp,
+  Wallet,
+  Activity
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 
 
 export default function AdminView() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'agreements' | 'whatsapp'>('whatsapp');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'agreements' | 'whatsapp'>('dashboard');
   const [waStatus, setWaStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
   const [agreements, setAgreements] = useState<any[]>([]);
 
@@ -35,10 +40,22 @@ export default function AdminView() {
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('portal_agreements') || '[]');
     setAgreements(stored.length > 0 ? stored : [
-      { id: 1, name: 'João da Silva Pereira', inscricao: '01.02.003.0045.001', option: 'Parcelamento (3x)', value: 850.00, date: '15/05/2026', status: 'Aguardando Pagamento', phone: '37999999999' },
-      { id: 2, name: 'Maria Souza Ramos', inscricao: '01.04.010.0022.001', option: 'Cota Única (1x)', value: 1200.00, date: '14/05/2026', status: 'Pago', phone: '37988888888' }
+      { id: 1, name: 'João da Silva Pereira', inscricao: '01.02.003.0045.001', option: 'Parcelamento (3x)', value: 850.00, date: '15/05/2026', status: 'Aguardando Pagamento', phone: '37999999999', installments: 3, paidInstallments: 0 },
+      { id: 2, name: 'Maria Souza Ramos', inscricao: '01.04.010.0022.001', option: 'Cota Única (1x)', value: 1200.00, date: '14/05/2026', status: 'Pago', phone: '37988888888', installments: 1, paidInstallments: 1 }
     ]);
   }, []);
+
+  const handleSimulatePayment = (id: any) => {
+    const updated = agreements.map(agr => {
+      if (agr.id === id) {
+        return { ...agr, paidInstallments: (agr.paidInstallments || 0) + 1 };
+      }
+      return agr;
+    });
+    setAgreements(updated);
+    localStorage.setItem('portal_agreements', JSON.stringify(updated));
+    alert('Pagamento de 1 parcela simulado com sucesso! Se você voltar ao Portal, a Inscrição identificará o Acordo Incompleto.');
+  };
 
   const handleConnect = () => {
     setWaStatus('connecting');
@@ -77,6 +94,13 @@ export default function AdminView() {
         </div>
         <div className="flex-1 p-4 flex flex-col gap-2">
           <button 
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab === 'dashboard' ? 'bg-institutional-blue text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
+          >
+            <BarChart3 className="w-5 h-5" />
+            Visão Geral
+          </button>
+          <button 
             onClick={() => setActiveTab('agreements')}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab === 'agreements' ? 'bg-institutional-blue text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
           >
@@ -104,6 +128,91 @@ export default function AdminView() {
 
       {/* Main Content */}
       <div className="flex-1 p-4 md:p-10 overflow-y-auto">
+        {activeTab === 'dashboard' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-6">
+            <div>
+              <h2 className="text-3xl font-bold text-on-surface">Dashboard Analítico</h2>
+              <p className="text-on-surface-variant font-medium mt-1">Acompanhe a previsão de arrecadação e perfil de pagamentos em tempo real.</p>
+            </div>
+
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-2xl border border-surface-gray shadow-sm flex flex-col gap-2">
+                <div className="flex items-center gap-3 text-on-surface-variant font-bold text-sm uppercase tracking-wider">
+                  <Wallet className="w-5 h-5 text-institutional-blue" />
+                  Total Negociado
+                </div>
+                <div className="text-4xl font-bold text-on-surface">
+                  R$ {agreements.reduce((acc, curr) => acc + (curr.value || 0), 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-surface-gray shadow-sm flex flex-col gap-2">
+                <div className="flex items-center gap-3 text-on-surface-variant font-bold text-sm uppercase tracking-wider">
+                  <Activity className="w-5 h-5 text-success-green" />
+                  Acordos Ativos
+                </div>
+                <div className="text-4xl font-bold text-on-surface">{agreements.length}</div>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-surface-gray shadow-sm flex flex-col gap-2">
+                <div className="flex items-center gap-3 text-on-surface-variant font-bold text-sm uppercase tracking-wider">
+                  <TrendingUp className="w-5 h-5 text-terracotta" />
+                  Ticket Médio
+                </div>
+                <div className="text-4xl font-bold text-on-surface">
+                  R$ {(agreements.reduce((acc, curr) => acc + (curr.value || 0), 0) / (agreements.length || 1)).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </div>
+              </div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+              <div className="bg-white p-6 rounded-2xl border border-surface-gray shadow-sm flex flex-col gap-4 h-full">
+                <h3 className="font-bold text-on-surface text-lg">Distribuição por Cota/Parcelas</h3>
+                <div className="flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={[
+                      { name: 'Cota Única', count: agreements.filter(a => a.installments === 1).length },
+                      { name: '2 a 4x', count: agreements.filter(a => a.installments >= 2 && a.installments <= 4).length },
+                      { name: '5x ou mais', count: agreements.filter(a => a.installments >= 5).length }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#49454F', fontSize: 12, fontWeight: 600}} />
+                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#49454F', fontSize: 12}} />
+                      <RechartsTooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                      <Bar dataKey="count" fill="#2E4F9E" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl border border-surface-gray shadow-sm flex flex-col gap-4 h-full">
+                <h3 className="font-bold text-on-surface text-lg">Status dos Pagamentos</h3>
+                <div className="flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Aguardando', value: agreements.filter(a => a.status !== 'Pago').length },
+                          { name: 'Pagos', value: agreements.filter(a => a.status === 'Pago').length },
+                        ]}
+                        innerRadius={80}
+                        outerRadius={110}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        <Cell fill="#D94C36" />
+                        <Cell fill="#2E8B57" />
+                      </Pie>
+                      <RechartsTooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {activeTab === 'agreements' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-6">
             <div className="flex justify-between items-end">
@@ -131,7 +240,8 @@ export default function AdminView() {
                     <th className="p-4">Inscrição</th>
                     <th className="p-4">Opção</th>
                     <th className="p-4">Valor Total</th>
-                    <th className="p-4">Status</th>
+                    <th className="p-4">Status / Pago</th>
+                    <th className="p-4">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -148,6 +258,17 @@ export default function AdminView() {
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${agr.status === 'Pago' ? 'bg-success-green/10 text-success-green' : 'bg-terracotta/10 text-terracotta'}`}>
                           {agr.status}
                         </span>
+                        {agr.installments > 1 && <div className="mt-2 text-[10px] text-on-surface-variant font-bold uppercase">{agr.paidInstallments || 0} de {agr.installments} pagas</div>}
+                      </td>
+                      <td className="p-4">
+                        {agr.installments > 1 && (agr.paidInstallments || 0) < agr.installments && (
+                          <button 
+                            onClick={() => handleSimulatePayment(agr.id)}
+                            className="bg-institutional-blue/10 text-institutional-blue hover:bg-institutional-blue/20 text-[10px] font-bold px-3 py-2 rounded-lg transition-colors"
+                          >
+                            +1 Pagamento
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

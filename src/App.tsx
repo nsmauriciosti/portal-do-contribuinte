@@ -6,6 +6,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
+import Chatbot from './components/Chatbot';
 import HomeView from './views/HomeView';
 import DebtsView from './views/DebtsView';
 import PaymentOptionsView from './views/PaymentOptionsView';
@@ -36,6 +37,7 @@ export default function App() {
         </main>
 
         <BottomNav />
+        <Chatbot />
       </div>
     </BrowserRouter>
   );

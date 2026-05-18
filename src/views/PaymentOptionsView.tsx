@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Circle, ReceiptText, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -21,12 +21,35 @@ export default function PaymentOptionsView() {
     return <Navigate to="/" replace />;
   }
 
-  const OPTIONS: InstallmentOption[] = [
-    { id: '1', installments: 1, label: 'Cota Única (1x)', discountLabel: '25% DE DESCONTO', totalAmount: baseValue * 0.75, installmentValue: baseValue * 0.75 },
-    { id: '2', installments: 2, label: 'Parcelado (2x)', discountLabel: '20% DE DESCONTO', totalAmount: baseValue * 0.80, installmentValue: (baseValue * 0.80) / 2 },
-    { id: '3', installments: 3, label: 'Parcelado (3x)', discountLabel: '15% DE DESCONTO', totalAmount: baseValue * 0.85, installmentValue: (baseValue * 0.85) / 3 },
-    { id: '4', installments: 4, label: 'Parcelado (4x)', discountLabel: '10% DE DESCONTO', totalAmount: baseValue * 0.90, installmentValue: (baseValue * 0.90) / 4 },
-    { id: '7', installments: 7, label: 'Parcelado (7x)', discountLabel: 'SEM DESCONTO', totalAmount: baseValue, installmentValue: baseValue / 7 },
+  const [brokenAgreement, setBrokenAgreement] = useState<any>(null);
+  const [activeBaseValue, setActiveBaseValue] = useState(baseValue);
+
+  useEffect(() => {
+    // Busca acordos rompidos/parciais do localStorage
+    try {
+      const stored = JSON.parse(localStorage.getItem('portal_agreements') || '[]');
+      const agreement = stored.find((a: any) => a.inscricao === inscricao);
+      
+      if (agreement && agreement.paidInstallments > 0 && agreement.paidInstallments < agreement.installments) {
+        setBrokenAgreement(agreement);
+        // Calcula o saldo devedor descontando o que já foi pago
+        const valorPorParcela = agreement.value / agreement.installments;
+        const valorPago = valorPorParcela * agreement.paidInstallments;
+        const saldoDevedor = agreement.value - valorPago;
+        setActiveBaseValue(saldoDevedor);
+      }
+    } catch (e) {}
+  }, [inscricao]);
+
+  // Se houver acordo rompido, só permite o parcelamento em 7x do saldo devedor
+  const OPTIONS: InstallmentOption[] = brokenAgreement ? [
+    { id: '7', installments: 7, label: 'Reparcelamento Especial (7x)', discountLabel: 'SALDO DEVEDOR', totalAmount: activeBaseValue, installmentValue: activeBaseValue / 7 },
+  ] : [
+    { id: '1', installments: 1, label: 'Cota Única (1x)', discountLabel: '25% DE DESCONTO', totalAmount: activeBaseValue * 0.75, installmentValue: activeBaseValue * 0.75 },
+    { id: '2', installments: 2, label: 'Parcelado (2x)', discountLabel: '20% DE DESCONTO', totalAmount: activeBaseValue * 0.80, installmentValue: (activeBaseValue * 0.80) / 2 },
+    { id: '3', installments: 3, label: 'Parcelado (3x)', discountLabel: '15% DE DESCONTO', totalAmount: activeBaseValue * 0.85, installmentValue: (activeBaseValue * 0.85) / 3 },
+    { id: '4', installments: 4, label: 'Parcelado (4x)', discountLabel: '10% DE DESCONTO', totalAmount: activeBaseValue * 0.90, installmentValue: (activeBaseValue * 0.90) / 4 },
+    { id: '7', installments: 7, label: 'Parcelado (7x)', discountLabel: 'SEM DESCONTO', totalAmount: activeBaseValue, installmentValue: activeBaseValue / 7 },
   ];
 
   const handleOptionSelect = (id: string) => {
@@ -61,9 +84,21 @@ export default function PaymentOptionsView() {
           Voltar para Opções
         </button>
         
-        <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-bold text-institutional-blue">Opções de Pagamento</h2>
-          <p className="text-on-surface-variant font-medium">Selecione a melhor forma de pagamento para você:</p>
+        {brokenAgreement && (
+          <div className="bg-terracotta/10 border border-terracotta/30 rounded-2xl p-6 flex gap-4">
+            <AlertTriangle className="w-6 h-6 text-terracotta shrink-0" />
+            <div className="flex flex-col gap-2">
+              <h3 className="font-bold text-terracotta">Acordo Anterior Incompleto Identificado</h3>
+              <p className="text-sm text-terracotta font-medium leading-relaxed">
+                Identificamos que você havia feito um acordo de <strong>{brokenAgreement.installments} parcelas</strong> e pagou <strong>{brokenAgreement.paidInstallments}</strong>. O seu saldo devedor atual foi recalculado para <strong>R$ {activeBaseValue.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong> (descontando o valor já pago). Conforme as regras do município, a única opção de reparcelamento disponível agora é em <strong>7 vezes</strong>.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div>
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-on-surface">Opções de Pagamento</h1>
+          {!brokenAgreement && <p className="text-on-surface-variant text-lg mt-2">Escolha a melhor condição para você. Descontos aplicados automaticamente no valor das parcelas.</p>}
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Copy, Info, ArrowLeft, Timer, CheckCircle2, Receipt } from 'lucide-react';
+import { Copy, Info, ArrowLeft, Timer, CheckCircle2, Receipt, Smartphone } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { generatePixPayload } from '@/src/lib/pix';
@@ -15,6 +15,13 @@ export default function PixPaymentView() {
   const amountToPay = selectedOption.installmentValue.toFixed(2);
   const pixPayload = generatePixPayload('18291385000159', 'Pref Nova Serrana', 'Nova Serrana', amountToPay);
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(pixPayload);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -82,10 +89,48 @@ export default function PixPaymentView() {
             <div className="bg-surface-container-low border border-surface-gray rounded-xl px-5 py-4 overflow-hidden truncate">
               <span className="text-sm font-medium text-on-surface-variant select-all break-all">{pixPayload}</span>
             </div>
-            <button className="w-full bg-institutional-blue text-white font-bold h-14 rounded-xl flex items-center justify-center gap-3 hover:opacity-90 active:scale-95 transition-all shadow-md">
-              <Copy className="w-5 h-5" />
-              Copiar Código
+            <button 
+              onClick={handleCopy}
+              className="w-full bg-institutional-blue text-white font-bold h-14 rounded-xl flex items-center justify-center gap-3 hover:opacity-90 active:scale-95 transition-all shadow-md"
+            >
+              {copied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+              {copied ? 'Código Copiado!' : 'Copiar Código'}
             </button>
+          </div>
+
+          {/* Deep Links dos Bancos */}
+          <div className="w-full pt-6 border-t border-surface-gray">
+            <h4 className="text-sm font-bold text-on-surface text-center mb-4 flex items-center justify-center gap-2">
+              <Smartphone className="w-4 h-4 text-institutional-blue" />
+              Pagar direto no app do banco
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {[
+                { name: 'Nubank', bg: 'bg-[#8A05BE]', text: 'text-white', scheme: 'nubank://' },
+                { name: 'Itaú', bg: 'bg-[#EC7000]', text: 'text-white', scheme: 'itau://' },
+                { name: 'Banco Inter', bg: 'bg-[#FF7A00]', text: 'text-white', scheme: 'bancointer://' },
+                { name: 'Caixa', bg: 'bg-[#005CA9]', text: 'text-white', scheme: 'caixa://' },
+                { name: 'Bradesco', bg: 'bg-[#CC092F]', text: 'text-white', scheme: 'bradesco://' },
+                { name: 'Banco do Brasil', bg: 'bg-[#F9D300]', text: 'text-[#003da5]', scheme: 'bb://' },
+              ].map(bank => (
+                <button 
+                  key={bank.name}
+                  onClick={() => {
+                    handleCopy();
+                    // Pequeno atraso para garantir que a cópia funcionou antes de trocar de app
+                    setTimeout(() => {
+                      window.location.href = bank.scheme;
+                    }, 400);
+                  }}
+                  className={`${bank.bg} ${bank.text} h-12 rounded-xl text-xs font-bold flex items-center justify-center shadow-sm hover:scale-[1.02] active:scale-95 transition-all px-2 text-center leading-tight ring-1 ring-black/5`}
+                >
+                  {bank.name}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-on-surface-variant text-center mt-4">
+              O portal copiará a chave automaticamente e enviará você para o banco.
+            </p>
           </div>
         </div>
       </motion.div>
