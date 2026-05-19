@@ -18,7 +18,7 @@ import {
   Activity
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-
+import { supabase } from '@/src/lib/supabase';
 
 
 export default function AdminView() {
@@ -38,23 +38,31 @@ export default function AdminView() {
   const [templatePaid, setTemplatePaid] = useState('Olá *{{nome}}*! Recebemos a confirmação de pagamento da sua parcela *{{parcela}}*. Agradecemos por contribuir com o município!');
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('portal_agreements') || '[]');
-    setAgreements(stored.length > 0 ? stored : [
-      { id: 1, name: 'João da Silva Pereira', inscricao: '01.02.003.0045.001', option: 'Parcelamento (3x)', value: 850.00, date: '15/05/2026', status: 'Aguardando Pagamento', phone: '37999999999', installments: 3, paidInstallments: 0 },
-      { id: 2, name: 'Maria Souza Ramos', inscricao: '01.04.010.0022.001', option: 'Cota Única (1x)', value: 1200.00, date: '14/05/2026', status: 'Pago', phone: '37988888888', installments: 1, paidInstallments: 1 }
-    ]);
+    const fetchAgreements = async () => {
+      const { data } = await supabase.from('acordos').select('*').order('id', { ascending: false });
+      if (data) {
+        setAgreements(data);
+      }
+    };
+    fetchAgreements();
   }, []);
 
-  const handleSimulatePayment = (id: any) => {
-    const updated = agreements.map(agr => {
-      if (agr.id === id) {
-        return { ...agr, paidInstallments: (agr.paidInstallments || 0) + 1 };
-      }
-      return agr;
-    });
-    setAgreements(updated);
-    localStorage.setItem('portal_agreements', JSON.stringify(updated));
-    alert('Pagamento de 1 parcela simulado com sucesso! Se você voltar ao Portal, a Inscrição identificará o Acordo Incompleto.');
+  const handleSimulatePayment = async (id: any) => {
+    const agr = agreements.find(a => a.id === id);
+    if (!agr) return;
+    
+    const newPaidInstallments = (agr.paidinstallments || 0) + 1;
+    
+    const { error } = await supabase.from('acordos')
+      .update({ paidinstallments: newPaidInstallments })
+      .eq('id', id);
+      
+    if (!error) {
+      setAgreements(agreements.map(a => a.id === id ? { ...a, paidinstallments: newPaidInstallments } : a));
+      alert('Pagamento de 1 parcela simulado com sucesso! Se você voltar ao Portal, a Inscrição identificará o Acordo Incompleto.');
+    } else {
+      alert('Erro ao atualizar no banco de dados.');
+    }
   };
 
   const handleConnect = () => {
@@ -248,20 +256,37 @@ export default function AdminView() {
                   {agreements.map(agr => (
                     <tr key={agr.id} className="border-b border-surface-gray/50 hover:bg-surface-container-low transition-colors">
                       <td className="p-4">
-                        <div className="font-bold text-on-surface">{agr.name}</div>
-                        <div className="text-xs font-medium text-on-surface-variant">{agr.date}</div>
+                        <div className="font-bold text-on-surface">{agr.nome || agr.name}</div>
+                        <div className="text-xs font-medium text-on-surface-variant">{agr.data || agr.date}</div>
                       </td>
-                      <td className="p-4 font-mono text-sm text-on-surface-variant">{agr.inscricao}</td>
-                      <td className="p-4 font-bold text-institutional-blue">{agr.option}</td>
-                      <td className="p-4 font-bold text-success-green">R$ {agr.value.toFixed(2)}</td>
+                      <td className="p-4">
+                        {agr.inscricao?.includes(',') ? (
+                          <div className="flex flex-col gap-1 max-w-[220px]">
+                            <span className="text-[10px] font-bold text-institutional-blue uppercase tracking-widest bg-institutional-blue/10 px-2 py-0.5 rounded w-fit mb-1">
+                              LOTE DE {agr.inscricao.split(',').length} IMÓVEIS
+                            </span>
+                            <div className="flex flex-wrap gap-1 max-h-[60px] overflow-y-auto custom-scrollbar pr-1">
+                              {agr.inscricao.split(',').map((insc: string) => (
+                                <span key={insc} className="font-mono text-[11px] bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-surface-gray">
+                                  {insc.trim()}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="font-mono text-sm text-on-surface-variant">{agr.inscricao}</span>
+                        )}
+                      </td>
+                      <td className="p-4 font-bold text-institutional-blue">{agr.opcao || agr.option}</td>
+                      <td className="p-4 font-bold text-success-green">R$ {Number(agr.valor || agr.value || 0).toFixed(2)}</td>
                       <td className="p-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${agr.status === 'Pago' ? 'bg-success-green/10 text-success-green' : 'bg-terracotta/10 text-terracotta'}`}>
                           {agr.status}
                         </span>
-                        {agr.installments > 1 && <div className="mt-2 text-[10px] text-on-surface-variant font-bold uppercase">{agr.paidInstallments || 0} de {agr.installments} pagas</div>}
+                        {agr.installments > 1 && <div className="mt-2 text-[10px] text-on-surface-variant font-bold uppercase">{agr.paidinstallments || 0} de {agr.installments} pagas</div>}
                       </td>
                       <td className="p-4">
-                        {agr.installments > 1 && (agr.paidInstallments || 0) < agr.installments && (
+                        {agr.installments > 1 && (agr.paidinstallments || 0) < agr.installments && (
                           <button 
                             onClick={() => handleSimulatePayment(agr.id)}
                             className="bg-institutional-blue/10 text-institutional-blue hover:bg-institutional-blue/20 text-[10px] font-bold px-3 py-2 rounded-lg transition-colors"

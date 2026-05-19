@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, Circle, ReceiptText, AlertTriangle } from 'luc
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { InstallmentOption } from '@/src/types';
-
+import { supabase } from '@/src/lib/supabase';
 
 
 export default function PaymentOptionsView() {
@@ -25,25 +25,32 @@ export default function PaymentOptionsView() {
   const [activeBaseValue, setActiveBaseValue] = useState(baseValue);
 
   useEffect(() => {
-    // Busca acordos rompidos/parciais do localStorage
-    try {
-      const stored = JSON.parse(localStorage.getItem('portal_agreements') || '[]');
-      // Busca especificamente algum acordo desta inscrição que foi iniciado e rompido
-      const agreement = stored.find((a: any) => a.inscricao === inscricao && a.paidInstallments > 0 && a.paidInstallments < a.installments);
-      
-      if (agreement) {
-        setBrokenAgreement(agreement);
-        // O valor pago é calculado com base no acordo (com desconto que ele tinha)
-        const valorPorParcela = agreement.value / agreement.installments;
-        const valorPago = valorPorParcela * agreement.paidInstallments;
-        
-        // Porém, como ele rompeu o acordo, ele perde o desconto do restante!
-        // O saldo devedor volta a ser o "valor total original" (baseValue) MENOS o que ele já pagou em dinheiro
-        const saldoDevedor = baseValue - valorPago;
-        setActiveBaseValue(saldoDevedor);
+    // Busca acordos rompidos/parciais do Supabase
+    const fetchBrokenAgreement = async () => {
+      try {
+        const { data, error } = await supabase.from('acordos')
+          .select('*')
+          .eq('inscricao', inscricao);
+          
+        if (!error && data) {
+          const agreement = data.find((a: any) => a.paidinstallments > 0 && a.paidinstallments < a.installments);
+          if (agreement) {
+            setBrokenAgreement(agreement);
+            // O valor pago é calculado com base no acordo (com desconto que ele tinha)
+            const valorPorParcela = agreement.valor / agreement.installments;
+            const valorPago = valorPorParcela * agreement.paidinstallments;
+            
+            // O saldo devedor volta a ser o "valor total original" (baseValue) MENOS o que ele já pagou
+            const saldoDevedor = baseValue - valorPago;
+            setActiveBaseValue(saldoDevedor);
+          }
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {}
-  }, [inscricao]);
+    };
+    fetchBrokenAgreement();
+  }, [inscricao, baseValue]);
 
   // Se houver acordo rompido, só permite o parcelamento em 7x do saldo devedor
   const OPTIONS: InstallmentOption[] = brokenAgreement ? [
@@ -94,7 +101,7 @@ export default function PaymentOptionsView() {
             <div className="flex flex-col gap-2">
               <h3 className="font-bold text-terracotta">Acordo Anterior Incompleto Identificado</h3>
               <p className="text-sm text-terracotta font-medium leading-relaxed">
-                Identificamos que você havia feito um acordo de <strong>{brokenAgreement.installments} parcelas</strong> e pagou <strong>{brokenAgreement.paidInstallments}</strong>. O seu saldo devedor atual foi recalculado para <strong>R$ {activeBaseValue.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong> (descontando o valor já pago). Conforme as regras do município, a única opção de reparcelamento disponível agora é em <strong>7 vezes</strong>.
+                Identificamos que você havia feito um acordo de <strong>{brokenAgreement.installments} parcelas</strong> e pagou <strong>{brokenAgreement.paidinstallments}</strong>. O seu saldo devedor atual foi recalculado para <strong>R$ {activeBaseValue.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong> (descontando o valor já pago). Conforme as regras do município, a única opção de reparcelamento disponível agora é em <strong>7 vezes</strong>.
               </p>
             </div>
           </div>

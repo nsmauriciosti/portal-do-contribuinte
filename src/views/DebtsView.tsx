@@ -15,7 +15,8 @@ export default function DebtsView() {
   const dataList = Array.isArray(debtData) ? debtData : [debtData];
   const firstItem = dataList[0];
 
-  const inscricao = isMultiple ? `Múltiplas Inscrições (${dataList.length})` : (firstItem['Inscricao_Imobiliaria'] || '-');
+  const inscricaoDisplay = isMultiple ? `Múltiplas Inscrições (${dataList.length})` : (firstItem['Inscricao_Imobiliaria'] || '-');
+  const inscricaoData = dataList.map((d: any) => d['Inscricao_Imobiliaria']).sort().join(',');
   
   const tipoLogra = firstItem['Tipo_Logradouro'] || '';
   const nomeLogra = firstItem['Nome_Logradouro'] || '';
@@ -61,7 +62,7 @@ export default function DebtsView() {
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-              {isMultiple ? 'Lote de Imóveis' : `Imóvel Localizado - Inscrição: ${inscricao}`}
+              {isMultiple ? 'Lote de Imóveis' : `Imóvel Localizado - Inscrição: ${inscricaoDisplay}`}
             </span>
             <p className="text-xl font-bold text-on-surface">{endereco}</p>
             <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -142,7 +143,7 @@ export default function DebtsView() {
           </div>
 
           <button 
-            onClick={() => navigate('/options', { state: { baseValue: valorTotal, inscricao, proprietario, areaTotal } })}
+            onClick={() => navigate('/options', { state: { baseValue: valorTotal, inscricao: inscricaoData, proprietario, areaTotal } })}
             className="w-full md:w-auto bg-institutional-blue text-white hover:bg-primary h-14 px-8 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg shadow-institutional-blue/10"
           >
             Escolher Opções de Pagamento
