@@ -44,7 +44,9 @@ export default function HomeView() {
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
-    const query = value.trim().replace(/[^\w\d]/g, '');
+    const query = method === 'doc' 
+      ? value.trim().replace(/[^\d]/g, '')
+      : value.trim();
     
     if (query) {
       setLoading(true);
