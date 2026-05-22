@@ -38,8 +38,11 @@ export default function PaymentMethodView() {
   const areaTotal = location.state?.areaTotal;
 
   const handleContinue = async () => {
+    const isExisting = location.state?.isExisting || false;
+    const paidinstallments = location.state?.paidinstallments || 0;
+
     // Save agreement to Supabase database for Admin Dashboard
-    if (selectedOption) {
+    if (selectedOption && !isExisting) {
       try {
         const newAgreement = {
           nome: proprietario || 'Contribuinte',
@@ -70,9 +73,9 @@ export default function PaymentMethodView() {
 
 
     if (selectedMethod === PaymentMethod.PIX) {
-      navigate('/payment/pix', { state: { selectedOption, inscricao, proprietario, areaTotal } });
+      navigate('/payment/pix', { state: { selectedOption, inscricao, proprietario, areaTotal, paidinstallments } });
     } else if (selectedMethod === PaymentMethod.BOLETO) {
-      navigate('/payment/boleto', { state: { selectedOption, inscricao, proprietario, areaTotal } });
+      navigate('/payment/boleto', { state: { selectedOption, inscricao, proprietario, areaTotal, paidinstallments } });
     }
   };
 
