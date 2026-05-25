@@ -33,6 +33,7 @@ export default function PaymentMethodView() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedOption = location.state?.selectedOption;
+  const cosipValue = location.state?.cosipValue || 0;
   const inscricao = location.state?.inscricao;
   const proprietario = location.state?.proprietario;
   const areaTotal = location.state?.areaTotal;
@@ -73,9 +74,9 @@ export default function PaymentMethodView() {
 
 
     if (selectedMethod === PaymentMethod.PIX) {
-      navigate('/payment/pix', { state: { selectedOption, inscricao, proprietario, areaTotal, paidinstallments } });
+      navigate('/payment/pix', { state: { selectedOption, cosipValue, inscricao, proprietario, areaTotal, paidinstallments } });
     } else if (selectedMethod === PaymentMethod.BOLETO) {
-      navigate('/payment/boleto', { state: { selectedOption, inscricao, proprietario, areaTotal, paidinstallments } });
+      navigate('/payment/boleto', { state: { selectedOption, cosipValue, inscricao, proprietario, areaTotal, paidinstallments } });
     }
   };
 

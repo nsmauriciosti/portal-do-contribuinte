@@ -10,4 +10,4 @@ RUN npm run build
 
 EXPOSE 3006
 
-CMD ["npm", "run", "preview"]
+CMD ["sh", "-c", "npx tsx server.ts & npm run preview"]

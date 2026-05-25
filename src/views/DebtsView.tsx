@@ -33,6 +33,7 @@ export default function DebtsView() {
   
   const areaTotal = dataList.reduce((acc, curr) => acc + (Number(curr['Area_Total_Construida']) || 0), 0);
   const valorTotal = dataList.reduce((acc, curr) => acc + (Number(curr['Valor_IPTU_2026']) || 0), 0);
+  const totalCosip = dataList.reduce((acc, curr) => acc + (curr['Tipo_Imovel'] === 'TERRITORIAL' ? 45.39 : 0), 0);
 
   const tipoImovel = isMultiple ? 'VÁRIOS' : (firstItem['Tipo_Imovel'] || '');
   const cadastroContribuinte = isMultiple ? 'VÁRIOS' : (firstItem['Numero_Cadastro_Contribuinte'] || '');
@@ -135,16 +136,34 @@ export default function DebtsView() {
         <div className="h-px bg-surface-gray w-full" />
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-bold text-on-surface-variant">Valor Total Pendente</span>
-            <span className="text-4xl font-bold text-institutional-blue">
-              R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Detalhamento do Lançamento</span>
+              <div className="flex flex-col gap-1 text-sm font-semibold text-on-surface-variant">
+                <div className="flex justify-between gap-10">
+                  <span>IPTU Principal:</span>
+                  <span className="text-on-surface">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+                {totalCosip > 0 && (
+                  <div className="flex justify-between gap-10">
+                    <span>Taxa COSIP (Iluminação):</span>
+                    <span className="text-on-surface">R$ {totalCosip.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="h-px bg-surface-gray w-full my-1" />
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-bold text-on-surface-variant">Valor Total Pendente</span>
+              <span className="text-4xl font-bold text-institutional-blue">
+                R$ {(valorTotal + totalCosip).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
           </div>
-
+ 
           <button 
-            onClick={() => navigate('/options', { state: { baseValue: valorTotal, inscricao: inscricaoData, proprietario, areaTotal } })}
-            className="w-full md:w-auto bg-institutional-blue text-white hover:bg-primary h-14 px-8 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg shadow-institutional-blue/10"
+            onClick={() => navigate('/options', { state: { baseValue: valorTotal, cosipValue: totalCosip, inscricao: inscricaoData, proprietario, areaTotal } })}
+            className="w-full md:w-auto bg-institutional-blue text-white hover:bg-primary h-14 px-8 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg shadow-institutional-blue/10 cursor-pointer"
           >
             Escolher Opções de Pagamento
             <ArrowRight className="w-5 h-5" />

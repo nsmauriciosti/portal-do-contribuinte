@@ -7,6 +7,7 @@ interface BoletoLayoutProps {
   valorFinal: number;
   vencimento?: string;
   isPrintVersion?: boolean;
+  cosipValue?: number;
 }
 
 export default function BoletoLayout({
@@ -16,10 +17,15 @@ export default function BoletoLayout({
   valorFinal,
   vencimento = '15/04/2026',
   isPrintVersion = false,
+  cosipValue = 0,
 }: BoletoLayoutProps) {
   // Cota única has 25% discount, calculate base values
-  const valorOriginal = valorFinal / 0.75;
-  const valorDesconto = valorOriginal * 0.25;
+  const cosip = cosipValue || 0;
+  const baseIPTUDescontado = valorFinal - cosip;
+  const valorOriginalIPTU = baseIPTUDescontado / 0.75;
+  const valorDescontoIPTU = valorOriginalIPTU * 0.25;
+  const valorOriginal = valorOriginalIPTU + cosip;
+  const valorDesconto = valorDescontoIPTU;
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -248,6 +254,9 @@ export default function BoletoLayout({
             <span className="block font-bold text-neutral-500 uppercase tracking-tight text-[8px]">Instruções (Texto de responsabilidade do beneficiário)</span>
             <div className="font-semibold text-neutral-800 flex flex-col gap-1 text-[9px] uppercase leading-normal">
               <span>• PAGAMENTO EM COTA ÚNICA REFERENTE AO IPTU 2026</span>
+              {cosip > 0 && (
+                <span>• INCLUSA TAXA DE ILUMINAÇÃO PÚBLICA (COSIP) INTEGRAL DE R$ {formatCurrency(cosip)} (SEM DESCONTO)</span>
+              )}
               <span>• DESCONTO DE 25% JÁ APLICADO NO VALOR DESTE BOLETO</span>
               <span>• NÃO RECEBER APÓS A DATA DE VENCIMENTO EM {vencimento}</span>
               <span>• EM CASO DE DÚVIDAS, ACESSE O CHAT DO PORTAL DO CONTRIBUINTE</span>

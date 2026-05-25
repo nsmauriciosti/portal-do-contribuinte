@@ -7,3 +7,7 @@ services:
       - "3006:3006"
     environment:
       - VIRTUAL_HOST=contribuinte.mauriciosti.xyz
+      - FIREBIRD_HOST=host.docker.internal
+      - FIREBIRD_PATH=D:\Users\Mauricio\Documents\portal-do-contribuinte\banco\dbnovaserrana.fdb
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

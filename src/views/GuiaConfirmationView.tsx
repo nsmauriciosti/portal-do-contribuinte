@@ -7,6 +7,7 @@ export default function GuiaConfirmationView() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedOption = location.state?.selectedOption || { installments: 1, installmentValue: 850.00, totalAmount: 850.00 };
+  const cosipValue = location.state?.cosipValue || 0;
   const inscricao = location.state?.inscricao || '01.02.003.0045.001';
   const proprietario = location.state?.proprietario || 'João da Silva Pereira';
   const areaTotal = location.state?.areaTotal || 0;
@@ -44,6 +45,7 @@ export default function GuiaConfirmationView() {
               valorFinal={selectedOption.installmentValue}
               vencimento="15/04/2026"
               isPrintVersion={true}
+              cosipValue={cosipValue}
             />
           </div>
         ) : (

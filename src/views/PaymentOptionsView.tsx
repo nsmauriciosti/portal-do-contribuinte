@@ -13,6 +13,7 @@ export default function PaymentOptionsView() {
   const navigate = useNavigate();
   const location = useLocation();
   const baseValue = location.state?.baseValue;
+  const cosipValue = location.state?.cosipValue || 0;
   const inscricao = location.state?.inscricao || '01.02.003.0045.001';
   const proprietario = location.state?.proprietario || 'João da Silva Pereira';
   const areaTotal = location.state?.areaTotal || '0,00';
@@ -65,13 +66,13 @@ export default function PaymentOptionsView() {
 
   // Se houver acordo rompido, só permite o parcelamento em 7x do saldo devedor
   const OPTIONS: InstallmentOption[] = brokenAgreement ? [
-    { id: '7', installments: 7, label: 'Reparcelamento Especial (7x)', discountLabel: 'SALDO DEVEDOR', totalAmount: activeBaseValue, installmentValue: activeBaseValue / 7 },
+    { id: '7', installments: 7, label: 'Reparcelamento Especial (7x)', discountLabel: 'SALDO DEVEDOR', totalAmount: activeBaseValue + cosipValue, installmentValue: (activeBaseValue + cosipValue) / 7 },
   ] : [
-    { id: '1', installments: 1, label: 'Cota Única (1x)', discountLabel: '25% DE DESCONTO', totalAmount: activeBaseValue * 0.75, installmentValue: activeBaseValue * 0.75 },
-    { id: '2', installments: 2, label: 'Parcelado (2x)', discountLabel: '20% DE DESCONTO', totalAmount: activeBaseValue * 0.80, installmentValue: (activeBaseValue * 0.80) / 2 },
-    { id: '3', installments: 3, label: 'Parcelado (3x)', discountLabel: '15% DE DESCONTO', totalAmount: activeBaseValue * 0.85, installmentValue: (activeBaseValue * 0.85) / 3 },
-    { id: '4', installments: 4, label: 'Parcelado (4x)', discountLabel: '10% DE DESCONTO', totalAmount: activeBaseValue * 0.90, installmentValue: (activeBaseValue * 0.90) / 4 },
-    { id: '7', installments: 7, label: 'Parcelado (7x)', discountLabel: 'SEM DESCONTO', totalAmount: activeBaseValue, installmentValue: activeBaseValue / 7 },
+    { id: '1', installments: 1, label: 'Cota Única (1x)', discountLabel: '25% DE DESCONTO', totalAmount: activeBaseValue * 0.75 + cosipValue, installmentValue: activeBaseValue * 0.75 + cosipValue },
+    { id: '2', installments: 2, label: 'Parcelado (2x)', discountLabel: '20% DE DESCONTO', totalAmount: activeBaseValue * 0.80 + cosipValue, installmentValue: (activeBaseValue * 0.80 + cosipValue) / 2 },
+    { id: '3', installments: 3, label: 'Parcelado (3x)', discountLabel: '15% DE DESCONTO', totalAmount: activeBaseValue * 0.85 + cosipValue, installmentValue: (activeBaseValue * 0.85 + cosipValue) / 3 },
+    { id: '4', installments: 4, label: 'Parcelado (4x)', discountLabel: '10% DE DESCONTO', totalAmount: activeBaseValue * 0.90 + cosipValue, installmentValue: (activeBaseValue * 0.90 + cosipValue) / 4 },
+    { id: '7', installments: 7, label: 'Parcelado (7x)', discountLabel: 'SEM DESCONTO', totalAmount: activeBaseValue + cosipValue, installmentValue: (activeBaseValue + cosipValue) / 7 },
   ];
 
   const handleOptionSelect = (id: string) => {
@@ -145,7 +146,7 @@ export default function PaymentOptionsView() {
   const handleContinue = () => {
     const selectedOption = OPTIONS.find(o => o.id === selectedId);
     if (selectedOption) {
-      navigate('/method', { state: { selectedOption, inscricao, proprietario, areaTotal } });
+      navigate('/method', { state: { selectedOption, cosipValue, inscricao, proprietario, areaTotal } });
     }
   };
 
@@ -304,8 +305,8 @@ export default function PaymentOptionsView() {
                         {option.discountLabel === 'SEM DESCONTO' ? 'Valor Total:' : 'Valor com Desconto:'}
                       </span>
                       {option.discountLabel !== 'SEM DESCONTO' && (
-                        <span className="text-[10px] font-medium text-terracotta line-through mt-0.5">
-                          De R$ {baseValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <span className="text-xs font-medium text-terracotta line-through mt-0.5">
+                          De R$ {(baseValue + cosipValue).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       )}
                     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/src/lib/utils';
 import { 
   Users, 
   MessageSquare, 
@@ -15,7 +16,8 @@ import {
   BarChart3,
   TrendingUp,
   Wallet,
-  Activity
+  Activity,
+  Database
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { supabase } from '@/src/lib/supabase';
@@ -23,9 +25,98 @@ import { supabase } from '@/src/lib/supabase';
 
 export default function AdminView() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'agreements' | 'whatsapp'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'agreements' | 'whatsapp' | 'database'>('dashboard');
   const [waStatus, setWaStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
   const [agreements, setAgreements] = useState<any[]>([]);
+  const [dbStatus, setDbStatus] = useState<'checking' | 'connected' | 'error'>('checking');
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  // Configurações do Banco de Dados
+  const [dbHostInput, setDbHostInput] = useState('127.0.0.1');
+  const [dbPathInput, setDbPathInput] = useState('');
+  const [dbUsernameInput, setDbUsernameInput] = useState('SYSDBA');
+  const [dbPasswordInput, setDbPasswordInput] = useState('masterkey');
+  const [dbSaveLoading, setDbSaveLoading] = useState(false);
+  const [dbSaveMessage, setDbSaveMessage] = useState<{ text: string; type: 'success' | 'error' | 'warning' | null }>({ text: '', type: null });
+  const [showPassword, setShowPassword] = useState(false);
+
+  const checkDbStatus = async () => {
+    setDbStatus('checking');
+    try {
+      const res = await fetch('/api/test-db');
+      const data = await res.json();
+      if (data.success) {
+        setDbStatus('connected');
+        setDbError(null);
+      } else {
+        setDbStatus('error');
+        setDbError(data.error || 'Erro desconhecido');
+      }
+    } catch (err: any) {
+      setDbStatus('error');
+      setDbError(err.message || 'Erro de rede');
+    }
+  };
+
+  useEffect(() => {
+    checkDbStatus();
+  }, []);
+
+  useEffect(() => {
+    const fetchDbConfig = async () => {
+      try {
+        const res = await fetch('/api/config/db');
+        const data = await res.json();
+        if (data.success && data.config) {
+          setDbHostInput(data.config.host || '127.0.0.1');
+          setDbPathInput(data.config.path || '');
+          setDbUsernameInput(data.config.username || 'SYSDBA');
+          setDbPasswordInput(data.config.password || 'masterkey');
+        }
+      } catch (err) {
+        console.error('Erro ao buscar configuração do banco:', err);
+      }
+    };
+    fetchDbConfig();
+  }, []);
+
+  const handleSaveDbConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDbSaveLoading(true);
+    setDbSaveMessage({ text: '', type: null });
+
+    try {
+      const res = await fetch('/api/config/db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          host: dbHostInput,
+          path: dbPathInput,
+          username: dbUsernameInput,
+          password: dbPasswordInput
+        })
+      });
+
+      const data = await res.json();
+      setDbSaveLoading(false);
+
+      if (data.success) {
+        if (data.connected) {
+          setDbSaveMessage({ text: 'Configurações salvas e conexão estabelecida com sucesso!', type: 'success' });
+        } else {
+          setDbSaveMessage({ text: `Configurações salvas, porém o teste de conexão falhou: ${data.error}`, type: 'warning' });
+        }
+        checkDbStatus();
+      } else {
+        setDbSaveMessage({ text: data.message || 'Erro ao salvar configurações.', type: 'error' });
+      }
+    } catch (err: any) {
+      setDbSaveLoading(false);
+      setDbSaveMessage({ text: `Erro de rede: ${err.message}`, type: 'error' });
+    }
+  };
 
   // Configurações da API Baileys
   const [apiUrl, setApiUrl] = useState('http://localhost:3333');
@@ -122,8 +213,46 @@ export default function AdminView() {
             <MessageSquare className="w-5 h-5" />
             WhatsApp Bot
           </button>
+          <button 
+            onClick={() => setActiveTab('database')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab === 'database' ? 'bg-institutional-blue text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
+          >
+            <Database className="w-5 h-5" />
+            Banco de Dados
+          </button>
         </div>
-        <div className="p-4 border-t border-surface-gray">
+        <div className="p-4 border-t border-surface-gray flex flex-col gap-3">
+          {/* Database Status Indicator */}
+          <div className={cn(
+            "p-3 rounded-xl flex flex-col gap-1.5 text-[11px] font-bold border",
+            dbStatus === 'checking' && "bg-surface-container-low border-surface-gray text-on-surface-variant",
+            dbStatus === 'connected' && "bg-success-green/10 border-success-green/20 text-success-green",
+            dbStatus === 'error' && "bg-terracotta/10 border-terracotta/20 text-terracotta"
+          )}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Database className="w-4 h-4 shrink-0 animate-pulse text-current" />
+                <span>Firebird Local:</span>
+              </div>
+              <span className="flex items-center gap-1 uppercase tracking-wide shrink-0">
+                <span className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  dbStatus === 'checking' && "bg-on-surface-variant animate-pulse",
+                  dbStatus === 'connected' && "bg-success-green",
+                  dbStatus === 'error' && "bg-terracotta"
+                )} />
+                {dbStatus === 'checking' && 'Verificando'}
+                {dbStatus === 'connected' && 'Conectado'}
+                {dbStatus === 'error' && 'Erro'}
+              </span>
+            </div>
+            {dbStatus === 'error' && dbError && (
+              <div className="text-[9px] text-terracotta font-medium bg-terracotta/5 p-1.5 rounded-lg border border-terracotta/10 leading-normal">
+                Erro: {dbError}
+              </div>
+            )}
+          </div>
+
           <button 
             onClick={() => navigate('/')}
             className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-on-surface-variant hover:bg-surface-container-low w-full transition-all"
@@ -449,6 +578,146 @@ export default function AdminView() {
                     <p className="text-xs font-medium text-institutional-blue leading-relaxed">
                       <strong>Nota de Integração:</strong> Quando as datas agendadas chegarem, o sistema fará requisições POST automáticas para a API Baileys configurada acima (Endpoint: <code>{apiUrl}/message/sendText</code>), utilizando a Instância <code>{instanceName}</code> com o Header de autenticação. O conteúdo do POST injetará os valores reais das variáveis nos templates de texto configurados.
                     </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'database' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-6">
+            <div>
+              <h2 className="text-3xl font-bold text-on-surface">Configurações do Banco de Dados</h2>
+              <p className="text-on-surface-variant font-medium mt-1">
+                Configure a localização e credenciais de acesso da base de dados Firebird (servidor local ou na rede).
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Form Configuração */}
+              <div className="md:col-span-2 bg-white border border-surface-gray rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+                <div className="flex justify-between items-center border-b border-surface-gray pb-4">
+                  <h3 className="font-bold text-on-surface flex items-center gap-2">
+                    <Database className="w-5 h-5 text-institutional-blue" />
+                    Parâmetros de Conexão (Firebird)
+                  </h3>
+                </div>
+
+                <form onSubmit={handleSaveDbConfig} className="flex flex-col gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2 col-span-2 md:col-span-1">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Host do Servidor / Rede</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={dbHostInput}
+                        onChange={(e) => setDbHostInput(e.target.value)}
+                        placeholder="Ex: 127.0.0.1 ou 192.168.1.100"
+                        className="bg-surface-container-low border border-outline-variant rounded-xl p-3 text-sm font-medium focus:border-institutional-blue outline-none transition-colors"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2 col-span-2 md:col-span-1">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Caminho da Base de Dados (.fdb)</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={dbPathInput}
+                        onChange={(e) => setDbPathInput(e.target.value)}
+                        placeholder="Ex: C:\banco\dbnovaserrana.fdb"
+                        className="bg-surface-container-low border border-outline-variant rounded-xl p-3 text-sm font-medium focus:border-institutional-blue outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2 col-span-2 md:col-span-1">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Usuário do Banco</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={dbUsernameInput}
+                        onChange={(e) => setDbUsernameInput(e.target.value)}
+                        placeholder="SYSDBA"
+                        className="bg-surface-container-low border border-outline-variant rounded-xl p-3 text-sm font-medium focus:border-institutional-blue outline-none transition-colors"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2 col-span-2 md:col-span-1">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider flex justify-between">
+                        Senha
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-[10px] text-institutional-blue font-bold lowercase tracking-normal"
+                        >
+                          {showPassword ? 'Ocultar' : 'Mostrar'}
+                        </button>
+                      </label>
+                      <input 
+                        type={showPassword ? 'text' : 'password'} 
+                        required
+                        value={dbPasswordInput}
+                        onChange={(e) => setDbPasswordInput(e.target.value)}
+                        placeholder="masterkey"
+                        className="bg-surface-container-low border border-outline-variant rounded-xl p-3 text-sm font-medium focus:border-institutional-blue outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  {dbSaveMessage.text && (
+                    <div className={cn(
+                      "p-4 rounded-xl text-xs font-bold border flex items-center gap-3",
+                      dbSaveMessage.type === 'success' && "bg-success-green/10 border-success-green/20 text-success-green",
+                      dbSaveMessage.type === 'warning' && "bg-terracotta/10 border-terracotta/20 text-[#a37012] border-warning-gold/30 bg-[#fffde6]",
+                      dbSaveMessage.type === 'error' && "bg-terracotta/10 border-terracotta/20 text-terracotta"
+                    )}>
+                      {dbSaveMessage.type === 'success' && <CheckCircle2 className="w-5 h-5 shrink-0" />}
+                      {dbSaveMessage.type === 'warning' && <AlertCircle className="w-5 h-5 shrink-0" />}
+                      {dbSaveMessage.type === 'error' && <AlertCircle className="w-5 h-5 shrink-0 animate-bounce" />}
+                      <span>{dbSaveMessage.text}</span>
+                    </div>
+                  )}
+
+                  <button 
+                    type="submit" 
+                    disabled={dbSaveLoading}
+                    className="w-full bg-institutional-blue text-white font-bold h-12 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 shadow-md cursor-pointer"
+                  >
+                    {dbSaveLoading ? 'Salvando e testando...' : 'Salvar Configurações'}
+                  </button>
+                </form>
+              </div>
+
+              {/* Informações de Conexão */}
+              <div className="bg-white border border-surface-gray rounded-2xl p-6 shadow-sm flex flex-col gap-6 h-fit">
+                <h3 className="font-bold text-on-surface border-b border-surface-gray pb-4 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-institutional-blue" />
+                  Status da Conexão
+                </h3>
+
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between p-3 rounded-xl border bg-surface-container-low border-surface-gray">
+                    <span className="text-xs font-bold text-on-surface-variant">Conexão Atual:</span>
+                    <span className={cn(
+                      "text-xs font-bold uppercase px-3 py-1 rounded-full",
+                      dbStatus === 'checking' && "bg-surface-gray text-on-surface-variant",
+                      dbStatus === 'connected' && "bg-success-green/10 text-success-green",
+                      dbStatus === 'error' && "bg-terracotta/10 text-terracotta"
+                    )}>
+                      {dbStatus === 'checking' && 'Verificando'}
+                      {dbStatus === 'connected' && 'Conectado'}
+                      {dbStatus === 'error' && 'Erro'}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-on-surface-variant font-medium leading-relaxed bg-surface-container-low/50 p-4 rounded-xl border border-dashed border-surface-gray">
+                    <p className="mb-2"><strong>Instruções:</strong></p>
+                    <ul className="list-disc pl-4 flex flex-col gap-1.5">
+                      <li><strong>Local:</strong> Use host <code>127.0.0.1</code> ou <code>localhost</code> e o caminho absoluto do arquivo <code>.fdb</code> na máquina local.</li>
+                      <li><strong>Docker:</strong> Se estiver rodando a aplicação em um container Docker, utilize o host <code>host.docker.internal</code> para se comunicar com o banco de dados rodando na máquina host.</li>
+                      <li><strong>Rede:</strong> Altere o host para o IP ou nome do servidor na rede e defina o caminho correspondente de onde o banco está exposto no host remoto.</li>
+                      <li>Certifique-se de que a porta padrão <code>3050</code> do Firebird está aberta no servidor de destino.</li>
+                    </ul>
                   </div>
                 </div>
               </div>

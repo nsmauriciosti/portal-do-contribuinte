@@ -8,6 +8,7 @@ export default function BoletoView() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedOption = location.state?.selectedOption || { label: 'Cota Única (1x)', installmentValue: 850.00, installments: 1, totalAmount: 850.00 };
+  const cosipValue = location.state?.cosipValue || 0;
   const inscricao = location.state?.inscricao || '01.02.003.0045.001';
   const proprietario = location.state?.proprietario || 'João da Silva Pereira';
   const areaTotal = location.state?.areaTotal || 0;
@@ -97,7 +98,7 @@ export default function BoletoView() {
             
             <div className="mt-6 flex flex-col items-center gap-3">
               <button 
-                onClick={() => navigate('/confirmation', { state: { selectedOption, inscricao, proprietario, areaTotal } })}
+                onClick={() => navigate('/confirmation', { state: { selectedOption, cosipValue, inscricao, proprietario, areaTotal } })}
                 className="w-full md:w-auto bg-institutional-blue text-white font-bold h-14 px-10 rounded-xl flex items-center justify-center gap-3 hover:opacity-90 active:scale-95 transition-all shadow-md"
               >
                 <Download className="w-5 h-5" /> Baixar Carnê Completo (PDF)
@@ -156,6 +157,7 @@ export default function BoletoView() {
                   areaTotal={areaTotal}
                   valorFinal={selectedOption.installmentValue}
                   vencimento="15/04/2026"
+                  cosipValue={cosipValue}
                 />
               </div>
             </motion.div>
@@ -168,12 +170,17 @@ export default function BoletoView() {
                   <p className="text-xs font-medium text-on-surface-variant mt-1">Valores referentes ao recolhimento em cota única.</p>
                 </div>
                 <div className="flex justify-between items-end border-t border-surface-gray pt-4">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-on-surface-variant">Valor Original:</span>
-                    <span className="text-xs font-bold text-terracotta line-through">R$ {(selectedOption.installmentValue / 0.75).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-bold text-on-surface-variant">Detalhamento:</span>
+                    <span className="text-xs font-semibold text-on-surface-variant">IPTU Original: R$ {((selectedOption.installmentValue - cosipValue) / 0.75).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    {cosipValue > 0 && (
+                      <span className="text-xs font-semibold text-on-surface-variant">COSIP (Integral): R$ {cosipValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    )}
+                    <span className="text-xs font-bold text-on-surface-variant mt-1">Valor Original Total:</span>
+                    <span className="text-xs font-bold text-terracotta line-through">R$ {(((selectedOption.installmentValue - cosipValue) / 0.75) + cosipValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-[10px] font-bold text-success-green bg-success-green/10 px-2 py-0.5 rounded uppercase">25% Desconto</span>
+                  <div className="flex flex-col items-end justify-end">
+                    <span className="text-[10px] font-bold text-success-green bg-success-green/10 px-2 py-0.5 rounded uppercase">25% Desconto no IPTU</span>
                     <span className="text-2xl font-bold text-on-surface mt-1">R$ {selectedOption.installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
@@ -188,7 +195,7 @@ export default function BoletoView() {
                   <p className="text-xs font-medium text-on-surface-variant mt-1">Gere a guia oficial para impressão ou para salvar em seu dispositivo.</p>
                 </div>
                 <button 
-                  onClick={() => navigate('/confirmation', { state: { selectedOption, inscricao, proprietario, areaTotal } })}
+                  onClick={() => navigate('/confirmation', { state: { selectedOption, cosipValue, inscricao, proprietario, areaTotal } })}
                   className="w-full h-12 bg-institutional-blue text-white font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
                 >
                   Visualizar Impressão (PDF)

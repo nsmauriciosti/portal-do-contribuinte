@@ -1,9 +1,8 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Landmark, Search, Info, Fingerprint } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
-import { supabase } from '@/src/lib/supabase';
 
 export default function HomeView() {
   const [method, setMethod] = useState<'doc' | 'insc'>('doc');
@@ -12,6 +11,7 @@ export default function HomeView() {
   const [multiResults, setMultiResults] = useState<any[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const navigate = useNavigate();
+
 
   const handleMethodChange = (newMethod: 'doc' | 'insc') => {
     setMethod(newMethod);
@@ -51,35 +51,39 @@ export default function HomeView() {
     if (query) {
       setLoading(true);
       
-      let req = supabase.from('imoveis').select('*');
-      
-      if (method === 'doc') {
-        req = req.eq('cpf_cnpj_proprietario', query);
-      } else {
-        req = req.eq('inscricao_imobiliaria', query);
-      }
+      try {
+        const url = method === 'doc'
+          ? `/api/imoveis?cpfCnpj=${encodeURIComponent(query)}`
+          : `/api/imoveis?inscricao=${encodeURIComponent(query)}`;
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        setLoading(false);
 
-      const { data, error } = await req;
-      
-      setLoading(false);
-
-      if (error) {
-        alert('Erro ao comunicar com o servidor. Tente novamente mais tarde.');
-        return;
-      }
-
-      if (data && data.length > 0) {
-        if (data.length === 1) {
-          // Apenas um imóvel, vai direto (passando como array de 1 item)
-          navigate('/debts', { state: { debtData: [mapSupabaseToInternal(data[0])] } });
-        } else {
-          // Vários imóveis, mostra modal
-          setMultiResults(data);
-          // Seleciona todos por padrão
-          setSelectedIds(data.map(d => d.id));
+        if (!response.ok || !result.success) {
+          alert(result.message || 'Erro ao comunicar com o servidor. Tente novamente mais tarde.');
+          return;
         }
-      } else {
-        alert('Nenhum débito encontrado para o documento/inscrição informado.');
+
+        const data = result.data;
+
+        if (data && data.length > 0) {
+          if (data.length === 1) {
+            // Apenas um imóvel, vai direto (passando como array de 1 item)
+            navigate('/debts', { state: { debtData: [mapSupabaseToInternal(data[0])] } });
+          } else {
+            // Vários imóveis, mostra modal
+            setMultiResults(data);
+            // Seleciona todos por padrão
+            setSelectedIds(data.map((d: any) => d.id));
+          }
+        } else {
+          alert('Nenhum débito encontrado para o documento/inscrição informado.');
+        }
+      } catch (err) {
+        setLoading(false);
+        alert('Erro ao comunicar com o servidor. Tente novamente mais tarde.');
       }
     }
   };
@@ -182,6 +186,8 @@ export default function HomeView() {
               Mantenha seus dados atualizados para garantir o recebimento das guias. O não pagamento pode acarretar em juros e multas.
             </p>
           </div>
+
+
         </div>
 
         {/* Footer Links */}
