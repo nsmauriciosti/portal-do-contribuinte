@@ -242,7 +242,7 @@ app.get('/api/imoveis', async (req, res) => {
           v.NRO_CUC,
           v.CNPJ_CPF,
           v.NOME,
-          v.AREA_TOT_CONSTRUIDA,
+          v.AREA_CONSTRUIDA,
           v.TIPO,
           COALESCE(bci2.IPTU_CALC, 0)
         FROM VW_IMOBILIARIO v
@@ -269,7 +269,7 @@ app.get('/api/imoveis', async (req, res) => {
           v.NRO_CUC,
           v.CNPJ_CPF,
           v.NOME,
-          v.AREA_TOT_CONSTRUIDA,
+          v.AREA_CONSTRUIDA,
           v.TIPO,
           COALESCE(bci2.IPTU_CALC, 0)
         FROM VW_IMOBILIARIO v
